@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { login as apiLogin, LoginRequest, LoginResponse } from '../services/authService';
 
 interface UserStats {
     workoutsCompleted: number;
@@ -8,7 +9,7 @@ interface UserStats {
     weightLifted: number;
 }
 
-interface UserProfile {
+export interface UserProfile {
     name: string;
     email: string;
     bio: string;
@@ -19,47 +20,88 @@ interface UserProfile {
 }
 
 interface UserContextType {
-    user: UserProfile;
+    user: UserProfile | null;
+    token: string | null;
+    isLoading: boolean;
+    login: (data: LoginRequest) => Promise<void>;
+    logout: () => Promise<void>;
     updateProfile: (updates: Partial<UserProfile>) => void;
     updateStats: (newStats: Partial<UserStats>) => void;
 }
 
-const defaultUser: UserProfile = {
-    name: 'Alex Johnson',
-    email: 'alex.fit@example.com',
-    bio: 'Fitness enthusiast & weekend warrior 💪',
-    profileImage: null,
-    stats: {
-        workoutsCompleted: 42,
-        minutesTrained: 1250,
-        streakDays: 12,
-        weightLifted: 15400
-    },
-    weeklyWorkoutGoal: 4,
-    lastGoalChange: null
+const defaultStats: UserStats = {
+    workoutsCompleted: 0,
+    minutesTrained: 0,
+    streakDays: 0,
+    weightLifted: 0
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<UserProfile>(defaultUser);
+    const [user, setUser] = useState<UserProfile | null>(null);
+    const [token, setToken] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Load from storage on mount
     useEffect(() => {
         const loadUser = async () => {
             try {
                 const storedUser = await AsyncStorage.getItem('user_profile');
-                if (storedUser) {
+                const storedToken = await AsyncStorage.getItem('user_token');
+
+                if (storedUser && storedToken) {
                     setUser(JSON.parse(storedUser));
+                    setToken(storedToken);
                 }
             } catch (e) {
                 console.error("Failed to load user profile", e);
+            } finally {
+                setIsLoading(false);
             }
         };
         loadUser();
     }, []);
 
+    const login = async (data: LoginRequest) => {
+        setIsLoading(true);
+        try {
+            const response = await apiLogin(data);
+            const { token, username, email } = response;
+
+            const newUser: UserProfile = {
+                name: username,
+                email: email,
+                bio: 'Fitness enthusiast', // Default bio
+                profileImage: null,
+                stats: defaultStats,
+                weeklyWorkoutGoal: 4,
+                lastGoalChange: null
+            };
+
+            setUser(newUser);
+            setToken(token);
+
+            await AsyncStorage.setItem('user_profile', JSON.stringify(newUser));
+            await AsyncStorage.setItem('user_token', token);
+        } catch (error) {
+            console.error("Login failed", error);
+            throw error;
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const logout = async () => {
+        setUser(null);
+        setToken(null);
+        await AsyncStorage.removeItem('user_profile');
+        await AsyncStorage.removeItem('user_token');
+    };
+
     const updateProfile = async (updates: Partial<UserProfile>) => {
+        if (!user) return;
+
         const newUser = { ...user, ...updates };
         setUser(newUser);
         try {
@@ -70,12 +112,13 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const updateStats = async (newStats: Partial<UserStats>) => {
+        if (!user) return;
         const updatedStats = { ...user.stats, ...newStats };
         updateProfile({ stats: updatedStats });
     };
 
     return (
-        <UserContext.Provider value={{ user, updateProfile, updateStats }}>
+        <UserContext.Provider value={{ user, token, isLoading, login, logout, updateProfile, updateStats }}>
             {children}
         </UserContext.Provider>
     );

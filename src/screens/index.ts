@@ -8,3 +8,4 @@ export { default as SocialScreen } from './SocialScreen';
 export { default as SquadDetailScreen } from './SquadDetailScreen';
 export { default as SquadSettingsScreen } from './SquadSettingsScreen';
 export { default as WorkoutSummaryScreen } from './WorkoutSummaryScreen';
+export { default as LoginScreen } from './LoginScreen';

@@ -7,4 +7,5 @@ export type RootStackParamList = {
     WorkoutSummary: { log: WorkoutRoutine };
     SquadDetail: { squadId: string; shareRoutine?: WorkoutRoutine };
     SquadSettings: { squadId: string };
+    Login: undefined;
 };
