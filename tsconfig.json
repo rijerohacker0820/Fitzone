@@ -8,7 +8,7 @@
     "lib": [
       "es6"
     ],
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "noEmit": true,
     "strict": true,
     "target": "esnext",
