@@ -1,23 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login as apiLogin, LoginRequest, LoginResponse } from '../services/authService';
+import { saveUserProfile } from '../services/storage';
 
-interface UserStats {
-    workoutsCompleted: number;
-    minutesTrained: number;
-    streakDays: number;
-    weightLifted: number;
-}
-
-export interface UserProfile {
-    name: string;
-    email: string;
-    bio: string;
-    profileImage: string | null;
-    stats: UserStats;
-    weeklyWorkoutGoal: number;
-    lastGoalChange: string | null;
-}
+import { UserProfile, UserStats } from '../types';
 
 interface UserContextType {
     user: UserProfile | null;
@@ -105,6 +91,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const newUser = { ...user, ...updates };
         setUser(newUser);
         try {
+            await saveUserProfile(newUser); // Save to API
             await AsyncStorage.setItem('user_profile', JSON.stringify(newUser));
         } catch (e) {
             console.error("Failed to save user profile", e);

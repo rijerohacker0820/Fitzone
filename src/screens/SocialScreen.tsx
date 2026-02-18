@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, TextInput } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, Alert, Modal, TextInput as RNTextInput } from 'react-native';
+import { createGroup, joinGroup } from '../services/groupService';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,14 +12,36 @@ import { useLanguage } from '../context/LanguageContext';
 export default function SocialScreen() {
     const { colors } = useTheme();
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-    const { squads } = useSquads();
+    const { squads, refreshSquads } = useSquads(); // Added refreshSquads
     const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<'Squads' | 'Friends'>('Squads');
     const [searchQuery, setSearchQuery] = useState('');
 
+    // Create Group State
+    const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+    const [newGroupName, setNewGroupName] = useState('');
+    const [newGroupDesc, setNewGroupDesc] = useState('');
+
     const filteredSquads = squads.filter(squad =>
         squad.name.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const handleCreateGroup = async () => {
+        if (!newGroupName.trim()) {
+            Alert.alert('Error', 'Group name is required');
+            return;
+        }
+        try {
+            await createGroup(newGroupName, newGroupDesc);
+            setIsCreatingGroup(false);
+            setNewGroupName('');
+            setNewGroupDesc('');
+            await refreshSquads();
+            Alert.alert('Success', 'Group created successfully!');
+        } catch (error) {
+            Alert.alert('Error', 'Failed to create group');
+        }
+    };
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -35,7 +58,10 @@ export default function SocialScreen() {
                     <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' }}>
                         <UserPlus size={24} color={colors.textSecondary} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' }}>
+                    <TouchableOpacity
+                        onPress={() => setIsCreatingGroup(true)}
+                        style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' }}
+                    >
                         <Plus size={24} color="#FFF" />
                     </TouchableOpacity>
                 </View>
@@ -190,6 +216,51 @@ export default function SocialScreen() {
                     </View>
                 )}
             </ScrollView>
+
+            {/* Create Group Modal */}
+            <Modal
+                visible={isCreatingGroup}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setIsCreatingGroup(false)}
+            >
+                <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={{ backgroundColor: '#FFF', width: '90%', borderRadius: 24, padding: 24 }}>
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#0F172A' }}>Create New Squad</Text>
+
+                        <RNTextInput
+                            placeholder="Squad Name"
+                            value={newGroupName}
+                            onChangeText={setNewGroupName}
+                            style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, padding: 12, marginBottom: 16, fontSize: 16 }}
+                        />
+
+                        <RNTextInput
+                            placeholder="Description"
+                            value={newGroupDesc}
+                            onChangeText={setNewGroupDesc}
+                            multiline
+                            numberOfLines={3}
+                            style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, padding: 12, marginBottom: 24, fontSize: 16, height: 80, textAlignVertical: 'top' }}
+                        />
+
+                        <View style={{ flexDirection: 'row', gap: 12 }}>
+                            <TouchableOpacity
+                                onPress={() => setIsCreatingGroup(false)}
+                                style={{ flex: 1, padding: 14, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center' }}
+                            >
+                                <Text style={{ fontWeight: 'bold', color: '#64748B' }}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={handleCreateGroup}
+                                style={{ flex: 1, padding: 14, borderRadius: 12, backgroundColor: '#2563EB', alignItems: 'center' }}
+                            >
+                                <Text style={{ fontWeight: 'bold', color: '#FFF' }}>Create Squad</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }

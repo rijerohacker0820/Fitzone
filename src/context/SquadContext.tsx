@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getUserGroups, Group } from '../services/groupService';
+
+// Re-export or redefine types if needed. 
+// For now, let's map Group Service types to Squad types or align them.
+// Service Group: id, name, description, streak, memberCount...
+// Squad: id, name, members, membersList, loggedToday, streak, activity, image, color, icon.
 
 export interface SquadMember {
     id: string;
@@ -14,71 +20,47 @@ export interface Squad {
     membersList: SquadMember[];
     loggedToday: number;
     streak: number;
-    activity: string; // 'High' | 'Medium' | 'Low'
-    image: any; // Using require for local or uri for remote
+    activity: string;
+    image: any;
     color: string;
     icon?: string;
+    description?: string;
 }
 
 interface SquadContextType {
     squads: Squad[];
     updateSquad: (id: string, updates: Partial<Squad>) => void;
     getSquad: (id: string) => Squad | undefined;
+    refreshSquads: () => Promise<void>;
 }
 
 const SquadContext = createContext<SquadContextType | undefined>(undefined);
 
-const initialMockSquads: Squad[] = [
-    {
-        id: '1',
-        name: 'Iron Squad',
-        members: 3,
-        membersList: [
-            { id: 'm1', name: 'John', profileImage: 'https://i.pravatar.cc/150?u=1', hasCompletedStreak: true },
-            { id: 'm2', name: 'Sarah', profileImage: 'https://i.pravatar.cc/150?u=2', hasCompletedStreak: true },
-            { id: 'm3', name: 'Mike', profileImage: 'https://i.pravatar.cc/150?u=3', hasCompletedStreak: true }
-        ],
-        loggedToday: 3,
-        streak: 5,
-        activity: 'High',
-        image: null,
-        color: '#EFF6FF',
-        icon: '👥'
-    },
-    {
-        id: '2',
-        name: 'Cardio Kings',
-        members: 8,
-        membersList: [
-            { id: 'm4', name: 'Alice', profileImage: 'https://i.pravatar.cc/150?u=4', hasCompletedStreak: true },
-            { id: 'm5', name: 'Bob', profileImage: 'https://i.pravatar.cc/150?u=5', hasCompletedStreak: false },
-            { id: 'm6', name: 'Charlie', profileImage: null, hasCompletedStreak: false }
-        ],
-        loggedToday: 2,
-        streak: 12,
-        activity: 'Medium',
-        image: null,
-        color: '#FEF3C7',
-        icon: '🏃'
-    },
-    {
-        id: '3',
-        name: 'Weekend Warriors',
-        members: 15,
-        membersList: [
-            { id: 'm7', name: 'Dave', profileImage: null, hasCompletedStreak: false }
-        ],
-        loggedToday: 0,
-        streak: 0,
-        activity: 'Low',
-        image: null,
-        color: '#F1F5F9',
-        icon: '🛌'
-    }
-];
-
 export const SquadProvider = ({ children }: { children: ReactNode }) => {
-    const [squads, setSquads] = useState<Squad[]>(initialMockSquads);
+    const [squads, setSquads] = useState<Squad[]>([]);
+
+    const refreshSquads = async () => {
+        const groups = await getUserGroups();
+        // Map backend Group to Frontend Squad
+        const mappedSquads: Squad[] = groups.map(g => ({
+            id: g.id,
+            name: g.name,
+            members: g.memberCount,
+            membersList: [], // We don't have member list in simple group DTO yet
+            loggedToday: 0, // Not in DTO
+            streak: g.streak,
+            activity: g.activityLevel,
+            image: null,
+            color: g.color || '#EFF6FF',
+            icon: g.icon || '👥',
+            description: g.description
+        }));
+        setSquads(mappedSquads);
+    };
+
+    useEffect(() => {
+        refreshSquads();
+    }, []);
 
     const updateSquad = (id: string, updates: Partial<Squad>) => {
         setSquads(prev => prev.map(squad =>
@@ -91,7 +73,7 @@ export const SquadProvider = ({ children }: { children: ReactNode }) => {
     };
 
     return (
-        <SquadContext.Provider value={{ squads, updateSquad, getSquad }}>
+        <SquadContext.Provider value={{ squads, updateSquad, getSquad, refreshSquads }}>
             {children}
         </SquadContext.Provider>
     );

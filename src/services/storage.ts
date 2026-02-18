@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WorkoutRoutine, UserProfile } from '../types';
+import apiClient from '../api/apiClient';
 
 const KEYS = {
     USER_PROFILE: 'user_profile',
@@ -12,6 +13,15 @@ const KEYS = {
 
 export const saveUserProfile = async (profile: UserProfile) => {
     try {
+        await apiClient.put('/profile', {
+            fullName: profile.name,
+            bio: profile.bio,
+            weight: profile.weight,
+            height: profile.height,
+            themePreference: profile.theme,
+            languagePreference: profile.language
+        });
+        // Update local cache
         await AsyncStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
     } catch (e) {
         console.error('Failed to save profile', e);
@@ -20,130 +30,106 @@ export const saveUserProfile = async (profile: UserProfile) => {
 
 export const getUserProfile = async (): Promise<UserProfile | null> => {
     try {
-        const jsonValue = await AsyncStorage.getItem(KEYS.USER_PROFILE);
-        return jsonValue != null ? JSON.parse(jsonValue) : null;
+        const response = await apiClient.get('/user/me');
+        const userData = response.data;
+
+        // Map backend DTO to frontend UserProfile
+        const profile: UserProfile = {
+            id: userData.id,
+            name: userData.fullName,
+            bio: userData.bio || 'Fitness enthusiast',
+            theme: userData.themePreference || 'Clean Blue', // Check DTO property names
+            language: userData.languagePreference || 'en',
+            avatarUrl: userData.avatarUrl || 'https://i.pravatar.cc/150?img=12',
+            height: userData.height || 0,
+            weight: userData.weight || 0,
+            streak: userData.streak || 0
+        };
+
+        // Update local cache
+        await AsyncStorage.setItem(KEYS.USER_PROFILE, JSON.stringify(profile));
+        return profile;
     } catch (e) {
-        console.error('Failed to fetch profile', e);
-        return null;
+        console.error('Failed to fetch profile from API, trying local cache', e);
+        try {
+            const jsonValue = await AsyncStorage.getItem(KEYS.USER_PROFILE);
+            return jsonValue != null ? JSON.parse(jsonValue) : null;
+        } catch (localError) {
+            return null;
+        }
     }
 };
 
 export const saveRoutine = async (routine: WorkoutRoutine) => {
     try {
-        const existing = await getRoutines();
-        const index = existing.findIndex(r => r.id === routine.id);
-        let updated;
-        if (index !== -1) {
-            updated = [...existing];
-            updated[index] = routine;
-        } else {
-            updated = [...existing, routine];
-        }
-        await AsyncStorage.setItem(KEYS.ROUTINES, JSON.stringify(updated));
+        // Prepare DTO
+        const dto = {
+            name: routine.name,
+            description: routine.description,
+            tags: routine.tags || [],
+            durationSeconds: routine.duration || 3600, // Default estimate
+            exercises: routine.exercises.map((ex, i) => ({
+                name: ex.name,
+                muscleGroup: ex.muscleGroup,
+                orderIndex: i,
+                sets: ex.sets.map(s => ({
+                    reps: s.reps,
+                    weight: s.weight
+                }))
+            }))
+        };
+
+        await apiClient.post('/routines', dto);
+        // Refresh done by caller usually, or we could return the new routine
     } catch (e) {
         console.error('Failed to save routine', e);
     }
 };
-
-const DEFAULT_ROUTINES: WorkoutRoutine[] = [
-    {
-        id: 'default-1',
-        name: 'Full Body Ignite',
-        description: 'A comprehensive full-body workout to jumpstart your fitness journey.',
-        tags: ['Full Body', 'Beginner'],
-        exercises: [
-            {
-                id: 'ex-1', name: 'Squat', muscleGroup: 'Legs', sets: [
-                    { id: 's1', reps: 12, weight: 0, status: 'pending' },
-                    { id: 's2', reps: 12, weight: 0, status: 'pending' },
-                    { id: 's3', reps: 12, weight: 0, status: 'pending' }
-                ]
-            },
-            {
-                id: 'ex-2', name: 'Bench Press', muscleGroup: 'Chest', sets: [
-                    { id: 's4', reps: 10, weight: 0, status: 'pending' },
-                    { id: 's5', reps: 10, weight: 0, status: 'pending' },
-                    { id: 's6', reps: 10, weight: 0, status: 'pending' }
-                ]
-            },
-            {
-                id: 'ex-3', name: 'Pull Up', muscleGroup: 'Back', sets: [
-                    { id: 's7', reps: 8, weight: 0, status: 'pending' },
-                    { id: 's8', reps: 8, weight: 0, status: 'pending' },
-                    { id: 's9', reps: 8, weight: 0, status: 'pending' }
-                ]
-            }
-        ],
-        date: new Date().toISOString(),
-        duration: 0,
-        status: 'planned'
-    },
-    {
-        id: 'default-2',
-        name: 'Upper Body Power',
-        description: 'Focused workout on strength and hypertrophy for the upper body.',
-        tags: ['Upper Body', 'Strength'],
-        exercises: [
-            {
-                id: 'ex-4', name: 'Overhead Press', muscleGroup: 'Shoulders', sets: [
-                    { id: 's10', reps: 10, weight: 0, status: 'pending' },
-                    { id: 's11', reps: 10, weight: 0, status: 'pending' },
-                    { id: 's12', reps: 10, weight: 0, status: 'pending' }
-                ]
-            },
-            {
-                id: 'ex-5', name: 'Dumbbell Row', muscleGroup: 'Back', sets: [
-                    { id: 's13', reps: 12, weight: 0, status: 'pending' },
-                    { id: 's14', reps: 12, weight: 0, status: 'pending' },
-                    { id: 's15', reps: 12, weight: 0, status: 'pending' }
-                ]
-            },
-            {
-                id: 'ex-6', name: 'Bicep Curl', muscleGroup: 'Arms', sets: [
-                    { id: 's16', reps: 15, weight: 0, status: 'pending' },
-                    { id: 's17', reps: 15, weight: 0, status: 'pending' },
-                    { id: 's18', reps: 15, weight: 0, status: 'pending' }
-                ]
-            }
-        ],
-        date: new Date().toISOString(),
-        duration: 0,
-        status: 'planned'
-    }
-];
+// Helper to map status
+const mapStatus = (s: number | string): any => {
+    if (typeof s === 'string') return s;
+    // Map backend int status to frontend string if needed, 
+    // assuming backend 0=Pending, 1=Completed, etc.
+    // For now, if we receive int, we might need a map.
+    // Let's assume backend returns "Completed" string via enum converter.
+    return s;
+};
 
 export const getRoutines = async (): Promise<WorkoutRoutine[]> => {
     try {
-        const seeded = await AsyncStorage.getItem(KEYS.DEFAULTS_SEEDED);
-        const jsonValue = await AsyncStorage.getItem(KEYS.ROUTINES);
-        let currentRoutines: WorkoutRoutine[] = jsonValue != null ? JSON.parse(jsonValue) : [];
-
-        if (seeded !== 'true') {
-            // First time seeding or migration
-            // Filter out defaults that might already exist by some chance
-            const defaultsToAdd = DEFAULT_ROUTINES.filter(
-                def => !currentRoutines.some(curr => curr.id === def.id)
-            );
-
-            if (defaultsToAdd.length > 0) {
-                currentRoutines = [...currentRoutines, ...defaultsToAdd];
-                await AsyncStorage.setItem(KEYS.ROUTINES, JSON.stringify(currentRoutines));
-            }
-            await AsyncStorage.setItem(KEYS.DEFAULTS_SEEDED, 'true');
-        }
-
-        return currentRoutines;
+        const response = await apiClient.get('/routines');
+        // Map backend DTO to frontend WorkoutRoutine
+        const routines: WorkoutRoutine[] = response.data.map((r: any) => ({
+            id: r.id,
+            name: r.name,
+            description: r.description,
+            tags: r.tags,
+            isFavorite: r.isFavorite,
+            date: r.date,
+            duration: r.durationSeconds,
+            status: 'planned',
+            exercises: r.exercises.map((ex: any) => ({
+                id: ex.id,
+                name: ex.name,
+                muscleGroup: ex.muscleGroup,
+                sets: ex.sets.map((s: any) => ({
+                    id: s.id,
+                    reps: s.reps,
+                    weight: s.weight,
+                    status: 'pending' // Default when loading template
+                }))
+            }))
+        }));
+        return routines;
     } catch (e) {
-        console.error('Failed to fetch routines', e);
+        console.error('Failed to fetch routines from API', e);
         return [];
     }
 };
 
 export const deleteRoutine = async (id: string) => {
     try {
-        const existing = await getRoutines();
-        const updated = existing.filter(r => r.id !== id);
-        await AsyncStorage.setItem(KEYS.ROUTINES, JSON.stringify(updated));
+        await apiClient.delete(`/routines/${id}`);
     } catch (e) {
         console.error('Failed to delete routine', e);
     }
@@ -151,9 +137,28 @@ export const deleteRoutine = async (id: string) => {
 
 export const saveWorkoutLog = async (log: WorkoutRoutine) => {
     try {
-        const existing = await getWorkoutLogs();
-        const updated = [...existing, log];
-        await AsyncStorage.setItem(KEYS.WORKOUT_LOGS, JSON.stringify(updated));
+        // Map frontend log to Backend DTO
+        const dto = {
+            name: log.name,
+            date: log.date,
+            durationSeconds: log.duration,
+            status: 0, // 0 = Completed (assuming enum)
+            sensation: 0, // Map string to int if needed (Great=5, etc.). For now sending 0.
+            description: log.notes || '',
+            exercises: log.exercises.map((ex, i) => ({
+                name: ex.name,
+                muscleGroup: ex.muscleGroup || 'General',
+                orderIndex: i,
+                sets: ex.sets.map(s => ({
+                    reps: s.reps,
+                    weight: s.weight,
+                    isCompleted: s.status === 'completed'
+                }))
+            }))
+        };
+
+        await apiClient.post('/workouts', dto);
+        console.log('Workout synced to API');
     } catch (e) {
         console.error('Failed to save workout log', e);
     }
@@ -161,8 +166,26 @@ export const saveWorkoutLog = async (log: WorkoutRoutine) => {
 
 export const getWorkoutLogs = async (): Promise<WorkoutRoutine[]> => {
     try {
-        const jsonValue = await AsyncStorage.getItem(KEYS.WORKOUT_LOGS);
-        return jsonValue != null ? JSON.parse(jsonValue) : [];
+        const response = await apiClient.get('/workouts');
+        // Map Backend DTO to Frontend
+        return response.data.map((w: any) => ({
+            id: w.id,
+            name: w.name,
+            date: w.date,
+            duration: w.durationSeconds,
+            status: 'completed',
+            exercises: w.exercises.map((ex: any) => ({
+                id: ex.id,
+                name: ex.name,
+                muscleGroup: ex.muscleGroup,
+                sets: ex.sets.map((s: any) => ({
+                    id: s.id,
+                    reps: s.reps,
+                    weight: s.weight,
+                    status: s.status // Assuming backend returns string enum now or we map it
+                }))
+            }))
+        }));
     } catch (e) {
         console.error('Failed to fetch workout logs', e);
         return [];

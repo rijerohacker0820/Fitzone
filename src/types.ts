@@ -2,15 +2,28 @@ export type ProfileTheme = 'Electric Blue' | 'Lush Green' | 'Crimson Pulse' | 'G
 
 export type Language = 'en' | 'es' | 'fr';
 
+export interface UserStats {
+    workoutsCompleted: number;
+    minutesTrained: number;
+    streakDays: number;
+    weightLifted: number;
+}
+
 export interface UserProfile {
     id: string;
     name: string;
+    email: string;
+    bio: string;
+    profileImage: string | null;
     theme: ProfileTheme;
     language: Language;
     avatarUrl: string;
     height: number; // cm
     weight: number; // kg
     streak: number;
+    stats: UserStats;
+    weeklyWorkoutGoal: number;
+    lastGoalChange: string | null;
 }
 
 export type SetStatus = 'completed' | 'partial' | 'failed' | 'pending';

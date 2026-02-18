@@ -11,7 +11,15 @@ import { Settings, User, Bell, Shield, Info, Trash2, Cpu, Camera, Edit2, Activit
 export default function ProfileScreen() {
     const { colors } = useTheme();
     const { t, language, setLanguage } = useLanguage();
-    const { user, updateProfile } = useUser();
+    const { user, updateProfile, logout } = useUser();
+
+    if (!user) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <Activity size={32} color={colors.primary} />
+            </View>
+        );
+    }
 
     // Editing State
     const [isEditing, setIsEditing] = useState(false);
@@ -285,7 +293,11 @@ export default function ProfileScreen() {
                     <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t('support')}</Text>
                     <View style={[styles.sectionContent, { backgroundColor: colors.card }]}>
                         <SettingItem icon={Info} label={t('helpFeedback')} />
-                        <SettingItem icon={Settings} label={t('appSettings')} />
+                        <SettingItem
+                            icon={Settings}
+                            label={t('appSettings')}
+                            onPress={() => navigation.navigate('Settings')}
+                        />
                     </View>
                 </View>
 
@@ -308,7 +320,7 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.logoutButton}>
+                <TouchableOpacity style={styles.logoutButton} onPress={logout}>
                     <Text style={styles.logoutText}>{t('logOut')}</Text>
                 </TouchableOpacity>
 

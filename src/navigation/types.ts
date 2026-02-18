@@ -5,7 +5,8 @@ export type RootStackParamList = {
     ActiveWorkout: { routine: WorkoutRoutine };
     Schedule: undefined;
     WorkoutSummary: { log: WorkoutRoutine };
-    SquadDetail: { squadId: string; shareRoutine?: WorkoutRoutine };
+    SquadDetail: { squadId: string };
     SquadSettings: { squadId: string };
+    Settings: undefined;
     Login: undefined;
 };

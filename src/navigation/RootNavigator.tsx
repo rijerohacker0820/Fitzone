@@ -8,6 +8,7 @@ import {
     WorkoutSummaryScreen,
     SquadDetailScreen,
     SquadSettingsScreen,
+    SettingsScreen,
     LoginScreen
 } from '../screens';
 import { WorkoutRoutine } from '../types';
@@ -74,6 +75,14 @@ export default function RootNavigator() {
                         component={SquadSettingsScreen}
                         options={{
                             presentation: 'modal'
+                        }}
+                    />
+                    <Stack.Screen
+                        name="Settings"
+                        component={SettingsScreen}
+                        options={{
+                            headerShown: false,
+                            presentation: 'card'
                         }}
                     />
                 </>
