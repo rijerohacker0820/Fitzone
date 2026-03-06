@@ -11,6 +11,8 @@ import { useSquads } from '../context/SquadContext';
 import { useUser } from '../context/UserContext';
 import { useLanguage } from '../context/LanguageContext';
 import { RootStackParamList } from '../navigation/types';
+import { chatService, ChatMessageDto } from '../services/chatService';
+import { getGroupMembers } from '../services/groupService';
 
 interface SquadMember {
     id: string;
@@ -21,11 +23,14 @@ interface SquadMember {
     streak: boolean;
     isCurrentUser?: boolean;
     profileImage?: string;
+    role?: string;
 }
 
 interface ChatMessage {
     id: string;
     senderId: string;
+    senderName?: string;
+    senderImage?: string;
     text: string;
     timestamp: string;
     type?: 'text' | 'routine' | 'exercise';
@@ -71,20 +76,17 @@ export default function SquadDetailScreen() {
     useEffect(() => {
         if (route.params?.shareRoutine) {
             const routine = route.params.shareRoutine;
-            const newMessage: ChatMessage = {
-                id: Date.now().toString(),
-                senderId: '1', // Current user
+
+            chatService.sendMessage(squadId, {
                 text: '',
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
                 type: 'routine',
                 routineId: routine.id,
                 routineName: routine.name
-            };
-            setMessages(prev => [...prev, newMessage]);
+            });
+
             setActiveTab('Chat');
 
-            // Clear the param effectively by not reacting to it again? 
-            // Better to just let it be, as going back and forth won't re-trigger unless params change or component remounts.
+            // Clear the param effectively by not reacting to it again
             navigation.setParams({ shareRoutine: undefined });
         }
     }, [route.params?.shareRoutine]);
@@ -103,62 +105,124 @@ export default function SquadDetailScreen() {
     const [tempSquadIcon, setTempSquadIcon] = useState('');
     const [tempSquadImage, setTempSquadImage] = useState<string | null>(null);
 
-    // Generate Mock Members based on squad count
-    const members = React.useMemo(() => {
-        const count = squad?.members || 3;
-        const currentUserMember: SquadMember = {
-            id: 'current-user',
-            name: user.name,
-            avatarColor: '#FCA5A5',
-            sessionsCompleted: 4,
-            sessionsTarget: 4,
-            streak: true,
-            isCurrentUser: true,
+    // Real Members from API
+    const AVATAR_COLORS = ['#FCA5A5', '#93C5FD', '#FCD34D', '#86EFAC', '#C4B5FD', '#FDBA74'];
+    const [members, setMembers] = useState<SquadMember[]>([]);
 
-            profileImage: user.profileImage || undefined
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                const data = await getGroupMembers(squadId);
+                const mapped: SquadMember[] = data.map((m: any, index: number) => ({
+                    id: m.id,
+                    name: m.name || 'Unknown',
+                    avatarColor: AVATAR_COLORS[index % AVATAR_COLORS.length],
+                    sessionsCompleted: m.weeklyWorkouts || 0,
+                    sessionsTarget: 4, // Weekly goal
+                    streak: (m.weeklyWorkouts || 0) >= 4,
+                    isCurrentUser: m.id === user?.id,
+                    profileImage: m.profileImage || undefined,
+                    role: m.role
+                }));
+                setMembers(mapped);
+            } catch (error) {
+                console.error('Failed to fetch group members', error);
+            }
         };
+        fetchMembers();
+    }, [squadId]);
 
-        const baseMembers: SquadMember[] = [
-            currentUserMember,
-            { id: '2', name: 'Sarah', avatarColor: '#93C5FD', sessionsCompleted: 3, sessionsTarget: 4, streak: false },
-            { id: '3', name: 'Mike', avatarColor: '#FCD34D', sessionsCompleted: 5, sessionsTarget: 4, streak: true }
-        ];
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-        if (count <= 3) return baseMembers.slice(0, count);
+    const parseMessageDto = (dto: ChatMessageDto): ChatMessage => {
+        let text = dto.content;
+        let type: any = 'text';
+        let routineId, routineName, exerciseName, sets, reps;
 
-        const extraMembers: SquadMember[] = [];
-        const colors = ['#FCA5A5', '#93C5FD', '#FCD34D', '#86EFAC', '#C4B5FD', '#FDBA74'];
-
-        for (let i = 4; i <= count; i++) {
-            extraMembers.push({
-                id: i.toString(),
-                name: `Member ${i}`,
-                avatarColor: colors[i % colors.length],
-                sessionsCompleted: Math.floor(Math.random() * 5),
-                sessionsTarget: 4,
-                streak: Math.random() > 0.5
-            });
+        try {
+            const parsed = JSON.parse(dto.content);
+            if (parsed.text !== undefined || parsed.type !== undefined) {
+                text = parsed.text || '';
+                type = parsed.type || 'text';
+                routineId = parsed.routineId;
+                routineName = parsed.routineName;
+                exerciseName = parsed.exerciseName;
+                sets = parsed.sets;
+                reps = parsed.reps;
+            }
+        } catch {
+            // Is a plain text message
         }
 
-        return [...baseMembers, ...extraMembers];
-    }, [squad?.members]);
-
-    const [messages, setMessages] = useState<ChatMessage[]>([
-        { id: '1', senderId: '2', text: 'Great workout yesterday team! 🔥', timestamp: '10:30 AM' },
-        { id: '2', senderId: '3', text: 'Thanks Sarah! Aiming for 5 sessions this week.', timestamp: '10:32 AM' },
-        { id: '3', senderId: '1', text: 'Let\'s gooo! I just finished mine.', timestamp: '10:35 AM' },
-    ]);
-
-    const handleSendMessage = () => {
-        if (!message.trim()) return;
-        const newMessage: ChatMessage = {
-            id: Date.now().toString(),
-            senderId: '1', // Current user
-            text: message,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        return {
+            id: dto.id,
+            senderId: dto.userId,
+            senderName: dto.senderName,
+            senderImage: dto.senderImage,
+            text,
+            timestamp: new Date(dto.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type,
+            routineId,
+            routineName,
+            exerciseName,
+            sets,
+            reps
         };
-        setMessages([...messages, newMessage]);
+    };
+
+    useEffect(() => {
+        let isMounted = true;
+        const initChat = async () => {
+            try {
+                // 1. Fetch History
+                const history = await chatService.getMessageHistory(squadId);
+                const parsedHistory = history.map(parseMessageDto);
+                if (isMounted) setMessages(parsedHistory);
+
+                // 2. Connect to SignalR
+                await chatService.connect(squadId, (newMsgDto: ChatMessageDto) => {
+                    const newMsg = parseMessageDto(newMsgDto);
+                    if (isMounted) setMessages(prev => [...prev, newMsg]);
+                });
+            } catch (error) {
+                Alert.alert('Error starting chat', 'Could not load messages or connect to chat server.');
+            }
+        };
+
+        if (activeTab === 'Chat') {
+            initChat();
+        }
+
+        return () => {
+            isMounted = false;
+            chatService.disconnect();
+        };
+    }, [squadId, activeTab]);
+
+    const handleSendMessage = async () => {
+        if (!message.trim()) return;
+        const textToSend = message.trim();
         setMessage('');
+
+        // Optimistic UI for immediate feedback
+        const tempId = Date.now().toString();
+        const optimisticMsg: ChatMessage = {
+            id: tempId,
+            senderId: user?.id || '1',
+            senderName: user?.name || 'You',
+            senderImage: user?.profileImage || undefined,
+            text: textToSend,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            type: 'text'
+        };
+        setMessages(prev => [...prev, optimisticMsg]);
+
+        try {
+            await chatService.sendMessage(squadId, { text: textToSend, type: 'text' });
+        } catch (error) {
+            Alert.alert('Error', 'No se pudo enviar el mensaje.');
+            setMessages(prev => prev.filter(m => m.id !== tempId)); // Rollback
+        }
     };
 
     const handleAddPress = () => {
@@ -173,33 +237,33 @@ export default function SquadDetailScreen() {
         );
     };
 
-    const handleSelectRoutine = (routine: WorkoutRoutine) => {
-        const newMessage: ChatMessage = {
-            id: Date.now().toString(),
-            senderId: '1', // Current user
-            text: '',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            type: 'routine',
-            routineId: routine.id,
-            routineName: routine.name
-        };
-        setMessages([...messages, newMessage]);
+    const handleSelectRoutine = async (routine: WorkoutRoutine) => {
         setRoutineModalVisible(false);
+        try {
+            await chatService.sendMessage(squadId, {
+                text: '',
+                type: 'routine',
+                routineId: routine.id,
+                routineName: routine.name
+            });
+        } catch (error) {
+            Alert.alert('Error', 'Could not share routine.');
+        }
     };
 
-    const handleSelectExercise = (name: string, sets: number, reps: number) => {
-        const newMessage: ChatMessage = {
-            id: Date.now().toString(),
-            senderId: '1', // Current user
-            text: '',
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            type: 'exercise',
-            exerciseName: name,
-            sets: sets,
-            reps: reps
-        };
-        setMessages([...messages, newMessage]);
+    const handleSelectExercise = async (name: string, sets: number, reps: number) => {
         setExerciseModalVisible(false);
+        try {
+            await chatService.sendMessage(squadId, {
+                text: '',
+                type: 'exercise',
+                exerciseName: name,
+                sets: sets,
+                reps: reps
+            });
+        } catch (error) {
+            Alert.alert('Error', 'Could not share exercise.');
+        }
     };
 
     const handleLeaveSquad = () => {
@@ -310,7 +374,21 @@ export default function SquadDetailScreen() {
     const weeklySessionsTarget = 4;
     // Streak Logic: Active only if EVERY member has met their target
     const isStreakActive = React.useMemo(() => {
-        return members.every(member => member.sessionsCompleted >= member.sessionsTarget);
+        return members.length > 0 && members.every(member => member.sessionsCompleted >= member.sessionsTarget);
+    }, [members]);
+
+    // Team Power: percentage of total weekly goal completed across all members
+    const teamPower = React.useMemo(() => {
+        if (members.length === 0) return 0;
+        const totalCompleted = members.reduce((sum, m) => sum + m.sessionsCompleted, 0);
+        const totalTarget = members.reduce((sum, m) => sum + m.sessionsTarget, 0);
+        if (totalTarget === 0) return 0;
+        return Math.min(100, Math.round((totalCompleted / totalTarget) * 100));
+    }, [members]);
+
+    // Activity: how many members have logged at least 1 workout this week
+    const membersActiveThisWeek = React.useMemo(() => {
+        return members.filter(m => m.sessionsCompleted > 0).length;
     }, [members]);
 
     return (
@@ -487,7 +565,7 @@ export default function SquadDetailScreen() {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <View>
                                                 <Text style={{ color: isStreakActive ? '#BFDBFE' : '#94A3B8', fontSize: 10, fontWeight: 'bold', marginBottom: 2, letterSpacing: 0.5 }}>{t('teamPower').toUpperCase()}</Text>
-                                                <Text style={{ color: isStreakActive ? '#FFF' : '#475569', fontSize: 20, fontWeight: 'bold' }}>67%</Text>
+                                                <Text style={{ color: isStreakActive ? '#FFF' : '#475569', fontSize: 20, fontWeight: 'bold' }}>{teamPower}%</Text>
                                             </View>
                                             <Target size={20} color={isStreakActive ? '#BFDBFE' : '#CBD5E1'} />
                                         </View>
@@ -496,7 +574,7 @@ export default function SquadDetailScreen() {
                                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                             <View>
                                                 <Text style={{ color: isStreakActive ? '#BFDBFE' : '#94A3B8', fontSize: 10, fontWeight: 'bold', marginBottom: 2, letterSpacing: 0.5 }}>{t('activity').toUpperCase()}</Text>
-                                                <Text style={{ color: isStreakActive ? '#FFF' : '#475569', fontSize: 20, fontWeight: 'bold' }}>{squad?.loggedToday || 0}/{squad?.members || 3}</Text>
+                                                <Text style={{ color: isStreakActive ? '#FFF' : '#475569', fontSize: 20, fontWeight: 'bold' }}>{membersActiveThisWeek}/{members.length}</Text>
                                             </View>
                                             <Zap size={20} color={isStreakActive ? '#BFDBFE' : '#CBD5E1'} />
                                         </View>
@@ -600,9 +678,9 @@ export default function SquadDetailScreen() {
                             contentContainerStyle={{ paddingBottom: 16, paddingTop: 16 }}
                             showsVerticalScrollIndicator={false}
                             renderItem={({ item: msg }) => {
-                                const isMe = msg.senderId === '1';
-                                const sender = members.find(m => m.id === msg.senderId);
-                                const senderImg = sender?.profileImage;
+                                const isMe = msg.senderId === user?.id; // Fixed sender comparison against real user
+                                const senderName = msg.senderName || 'Squad Member';
+                                const senderImg = msg.senderImage;
 
                                 return (
                                     <View style={{
@@ -611,7 +689,7 @@ export default function SquadDetailScreen() {
                                         alignItems: 'flex-end'
                                     }}>
                                         {!isMe && (
-                                            <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: sender?.avatarColor || '#CBD5E1', marginRight: 8, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                                            <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: '#CBD5E1', marginRight: 8, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                                 {senderImg ? (
                                                     <Image source={{ uri: senderImg }} style={{ width: '100%', height: '100%' }} />
                                                 ) : (
@@ -631,7 +709,7 @@ export default function SquadDetailScreen() {
                                             shadowRadius: 2,
                                             elevation: 1
                                         }}>
-                                            {!isMe && <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748B', marginBottom: 4 }}>{sender?.name}</Text>}
+                                            {!isMe && <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748B', marginBottom: 4 }}>{senderName}</Text>}
                                             {msg.type === 'routine' ? (
                                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isMe ? 'rgba(255,255,255,0.2)' : '#F1F5F9', padding: 12, borderRadius: 12, gap: 12 }}>
                                                     <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: isMe ? '#FFF' : '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>

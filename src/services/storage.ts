@@ -35,15 +35,25 @@ export const getUserProfile = async (): Promise<UserProfile | null> => {
 
         // Map backend DTO to frontend UserProfile
         const profile: UserProfile = {
-            id: userData.id,
-            name: userData.fullName,
+            id: userData.id || 'unknown-id',
+            name: userData.fullName || 'User',
+            email: userData.email || 'user@example.com',
             bio: userData.bio || 'Fitness enthusiast',
-            theme: userData.themePreference || 'Clean Blue', // Check DTO property names
-            language: userData.languagePreference || 'en',
+            theme: userData.themePreference || 'Clean Blue',
+            language: userData.languagePreference || 'es',
             avatarUrl: userData.avatarUrl || 'https://i.pravatar.cc/150?img=12',
+            profileImage: userData.avatarUrl || null,
             height: userData.height || 0,
             weight: userData.weight || 0,
-            streak: userData.streak || 0
+            streak: userData.streak || 0,
+            stats: {
+                workoutsCompleted: 0,
+                minutesTrained: 0,
+                streakDays: userData.streak || 0,
+                weightLifted: 0
+            },
+            weeklyWorkoutGoal: 4,
+            lastGoalChange: null
         };
 
         // Update local cache
@@ -203,18 +213,29 @@ export const clearAllData = async () => {
 
 export const getWeeklyPlan = async () => {
     try {
-        const jsonPlan = await AsyncStorage.getItem(KEYS.WEEKLY_PLAN);
-        return jsonPlan ? JSON.parse(jsonPlan) : {};
+        const response = await apiClient.get('/weekly-plan');
+        const plan = response.data;
+        // Update local cache
+        await AsyncStorage.setItem(KEYS.WEEKLY_PLAN, JSON.stringify(plan));
+        return plan;
     } catch (e) {
-        console.error('Failed to load weekly plan', e);
-        return {};
+        console.error('Failed to fetch weekly plan from API, trying local cache', e);
+        try {
+            const jsonPlan = await AsyncStorage.getItem(KEYS.WEEKLY_PLAN);
+            return jsonPlan ? JSON.parse(jsonPlan) : {};
+        } catch (localError) {
+            return {};
+        }
     }
 };
 
 export const saveWeeklyPlan = async (plan: Record<string, string | null>) => {
     try {
+        await apiClient.put('/weekly-plan', plan);
+        // Update local cache
         await AsyncStorage.setItem(KEYS.WEEKLY_PLAN, JSON.stringify(plan));
     } catch (e) {
-        console.error('Failed to save weekly plan', e);
+        console.error('Failed to save weekly plan to API, saving locally', e);
+        await AsyncStorage.setItem(KEYS.WEEKLY_PLAN, JSON.stringify(plan));
     }
 };

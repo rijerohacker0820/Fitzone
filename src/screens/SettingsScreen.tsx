@@ -57,7 +57,7 @@ export default function SettingsScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: colors.border }]}>
+            <View style={[styles.header, { backgroundColor: colors.card, borderBottomColor: '#E2E8F0' }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <ChevronLeft size={24} color={colors.text} />
                 </TouchableOpacity>
@@ -81,7 +81,7 @@ export default function SettingsScreen() {
                             <Text style={[styles.label, { color: colors.textSecondary }]}>{t('name')}</Text>
                         </View>
                         <TextInput
-                            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                            style={[styles.input, { color: colors.text, borderColor: '#E2E8F0', backgroundColor: colors.background }]}
                             value={name}
                             onChangeText={setName}
                             placeholder="Your Name"
@@ -92,7 +92,7 @@ export default function SettingsScreen() {
                     <View style={styles.inputGroup}>
                         <Text style={[styles.label, { color: colors.textSecondary, marginLeft: 24, marginBottom: 8 }]}>Bio</Text>
                         <TextInput
-                            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background, height: 80, textAlignVertical: 'top' }]}
+                            style={[styles.input, { color: colors.text, borderColor: '#E2E8F0', backgroundColor: colors.background, height: 80, textAlignVertical: 'top' }]}
                             value={bio}
                             onChangeText={setBio}
                             multiline
@@ -111,7 +111,7 @@ export default function SettingsScreen() {
                             <Text style={[styles.label, { color: colors.textSecondary }]}>{t('height')} (cm)</Text>
                         </View>
                         <TextInput
-                            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                            style={[styles.input, { color: colors.text, borderColor: '#E2E8F0', backgroundColor: colors.background }]}
                             value={height}
                             onChangeText={setHeight}
                             keyboardType="numeric"
@@ -123,7 +123,7 @@ export default function SettingsScreen() {
                             <Text style={[styles.label, { color: colors.textSecondary }]}>{t('weight')} (kg)</Text>
                         </View>
                         <TextInput
-                            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+                            style={[styles.input, { color: colors.text, borderColor: '#E2E8F0', backgroundColor: colors.background }]}
                             value={weight}
                             onChangeText={setWeight}
                             keyboardType="numeric"
@@ -149,7 +149,7 @@ export default function SettingsScreen() {
                                     backgroundColor: parseInt(weeklyGoal) === num ? colors.primary : colors.background,
                                     justifyContent: 'center', alignItems: 'center',
                                     borderWidth: 1,
-                                    borderColor: parseInt(weeklyGoal) === num ? colors.primary : colors.border
+                                    borderColor: parseInt(weeklyGoal) === num ? colors.primary : '#E2E8F0'
                                 }}
                             >
                                 <Text style={{ color: parseInt(weeklyGoal) === num ? '#FFF' : colors.text, fontWeight: 'bold' }}>{num}</Text>
@@ -176,7 +176,7 @@ export default function SettingsScreen() {
                                         borderRadius: 8,
                                         backgroundColor: selectedLang === lang.code ? colors.primary : colors.background,
                                         borderWidth: 1,
-                                        borderColor: selectedLang === lang.code ? colors.primary : colors.border
+                                        borderColor: selectedLang === lang.code ? colors.primary : '#E2E8F0'
                                     }}
                                 >
                                     <Text style={{ color: selectedLang === lang.code ? '#FFF' : colors.text }}>{lang.label}</Text>
@@ -200,7 +200,7 @@ export default function SettingsScreen() {
                                         borderRadius: 8,
                                         backgroundColor: selectedTheme === themeName ? colors.primary : colors.background,
                                         borderWidth: 1,
-                                        borderColor: selectedTheme === themeName ? colors.primary : colors.border,
+                                        borderColor: selectedTheme === themeName ? colors.primary : '#E2E8F0',
                                         marginBottom: 4
                                     }}
                                 >

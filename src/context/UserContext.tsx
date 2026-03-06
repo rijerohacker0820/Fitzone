@@ -1,7 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { login as apiLogin, LoginRequest, LoginResponse } from '../services/authService';
-import { saveUserProfile } from '../services/storage';
+import { saveUserProfile, getUserProfile } from '../services/storage';
+import { useLanguage } from './LanguageContext';
+import { useTheme } from './ThemeContext';
 
 import { UserProfile, UserStats } from '../types';
 
@@ -25,6 +27,8 @@ const defaultStats: UserStats = {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider = ({ children }: { children: ReactNode }) => {
+    const { setLanguage } = useLanguage();
+    const { setTheme } = useTheme();
     const [user, setUser] = useState<UserProfile | null>(null);
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -33,12 +37,17 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const storedUser = await AsyncStorage.getItem('user_profile');
                 const storedToken = await AsyncStorage.getItem('user_token');
 
-                if (storedUser && storedToken) {
-                    setUser(JSON.parse(storedUser));
+                if (storedToken) {
                     setToken(storedToken);
+                    // Fetch real profile from API or Local Cache
+                    const profile = await getUserProfile();
+                    if (profile) {
+                        setUser(profile);
+                        if (profile.language) setLanguage(profile.language);
+                        if (profile.theme) setTheme(profile.theme);
+                    }
                 }
             } catch (e) {
                 console.error("Failed to load user profile", e);
@@ -53,23 +62,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(true);
         try {
             const response = await apiLogin(data);
-            const { token, username, email } = response;
+            const { token } = response;
 
-            const newUser: UserProfile = {
-                name: username,
-                email: email,
-                bio: 'Fitness enthusiast', // Default bio
-                profileImage: null,
-                stats: defaultStats,
-                weeklyWorkoutGoal: 4,
-                lastGoalChange: null
-            };
-
-            setUser(newUser);
             setToken(token);
-
-            await AsyncStorage.setItem('user_profile', JSON.stringify(newUser));
             await AsyncStorage.setItem('user_token', token);
+
+            // Now correctly fetch the user profile from the database
+            const profile = await getUserProfile();
+            if (profile) {
+                setUser(profile);
+                if (profile.language) setLanguage(profile.language);
+                if (profile.theme) setTheme(profile.theme);
+            } else {
+                throw new Error("Failed to load profile from server");
+            }
         } catch (error) {
             console.error("Login failed", error);
             throw error;

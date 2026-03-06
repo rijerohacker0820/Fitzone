@@ -15,6 +15,19 @@ interface Props {
 export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, onDoAgain }: Props) {
     const { colors } = useTheme();
 
+    const stats = React.useMemo(() => {
+        let total = 0;
+        let completed = 0;
+        if (workout) {
+            workout.exercises.forEach(ex => {
+                total += ex.sets.length;
+                completed += ex.sets.filter(s => s.status === 'completed').length;
+            });
+        }
+        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+        return { total, completed, percent };
+    }, [workout]);
+
     if (!workout) return null;
 
     const formatDate = (dateString: string) => {
@@ -32,17 +45,6 @@ export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, 
         const mins = Math.floor(seconds / 60);
         return `${mins} min`;
     };
-
-    const stats = React.useMemo(() => {
-        let total = 0;
-        let completed = 0;
-        workout.exercises.forEach(ex => {
-            total += ex.sets.length;
-            completed += ex.sets.filter(s => s.status === 'completed').length;
-        });
-        const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-        return { total, completed, percent };
-    }, [workout]);
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet">
@@ -90,9 +92,9 @@ export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, 
                                 )}
                                 {workout.sensation && (
                                     <View style={styles.summaryItem}>
-                                        {workout.sensation === 'Energized' && <Zap size={18} color="#FFD700" />}
+                                        {(workout.sensation === 'Great' || workout.sensation === 'Good') && <Zap size={18} color="#FFD700" />}
                                         {workout.sensation === 'Neutral' && <Smile size={18} color="#22C55E" />}
-                                        {workout.sensation === 'Tired' && <Coffee size={18} color="#64748B" />}
+                                        {(workout.sensation === 'Hard' || workout.sensation === 'Exhausted') && <Coffee size={18} color="#64748B" />}
                                         <Text style={[styles.summaryText, { color: colors.text }]}>{workout.sensation}</Text>
                                     </View>
                                 )}

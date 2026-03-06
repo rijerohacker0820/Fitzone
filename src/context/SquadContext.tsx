@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { getUserGroups, Group } from '../services/groupService';
 
+import { useUser } from './UserContext';
+
 // Re-export or redefine types if needed. 
 // For now, let's map Group Service types to Squad types or align them.
 // Service Group: id, name, description, streak, memberCount...
@@ -37,9 +39,11 @@ interface SquadContextType {
 const SquadContext = createContext<SquadContextType | undefined>(undefined);
 
 export const SquadProvider = ({ children }: { children: ReactNode }) => {
+    const { user } = useUser();
     const [squads, setSquads] = useState<Squad[]>([]);
 
     const refreshSquads = async () => {
+        if (!user) return;
         const groups = await getUserGroups();
         // Map backend Group to Frontend Squad
         const mappedSquads: Squad[] = groups.map(g => ({
@@ -59,8 +63,12 @@ export const SquadProvider = ({ children }: { children: ReactNode }) => {
     };
 
     useEffect(() => {
-        refreshSquads();
-    }, []);
+        if (user) {
+            refreshSquads();
+        } else {
+            setSquads([]);
+        }
+    }, [user]);
 
     const updateSquad = (id: string, updates: Partial<Squad>) => {
         setSquads(prev => prev.map(squad =>

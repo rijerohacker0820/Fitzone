@@ -6,12 +6,14 @@ import { useUser } from '../context/UserContext';
 import { clearAllData } from '../services/storage';
 import { customAlert } from '../utils/alert';
 import * as ImagePicker from 'expo-image-picker';
+import { useNavigation } from '@react-navigation/native';
 import { Settings, User, Bell, Shield, Info, Trash2, Cpu, Camera, Edit2, Activity, Clock, Award, ChevronRight, Target, X, Globe } from 'lucide-react-native';
 
 export default function ProfileScreen() {
     const { colors } = useTheme();
     const { t, language, setLanguage } = useLanguage();
     const { user, updateProfile, logout } = useUser();
+    const navigation = useNavigation<any>();
 
     if (!user) {
         return (

@@ -33,11 +33,34 @@ export const createGroup = async (name: string, description: string) => {
     }
 };
 
+export const getMyGroups = async () => {
+    const response = await apiClient.get('/groups/my-groups');
+    return response.data;
+};
+
+export const getGroupMembers = async (groupId: string) => {
+    const response = await apiClient.get(`/groups/${groupId}/members`);
+    return response.data;
+};
+
 export const joinGroup = async (groupId: string) => {
     try {
         await apiClient.post(`/groups/${groupId}/join`);
     } catch (error) {
         console.error('Failed to join group', error);
+        throw error;
+    }
+};
+
+export const addMemberToGroup = async (groupId: string, userId: string) => {
+    try {
+        const response = await apiClient.post(`/groups/${groupId}/members/${userId}`);
+        return response.data;
+    } catch (error: any) {
+        console.error('Failed to add member to group', error);
+        if (error.response && error.response.data && error.response.data.message) {
+            throw new Error(error.response.data.message);
+        }
         throw error;
     }
 };

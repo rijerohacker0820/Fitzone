@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, Alert, StyleSheet, Switch } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, TextInput, Alert, StyleSheet, Switch, Modal } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { ChevronLeft, Camera, User, LogOut, Trash2, Shield, Bell } from 'lucide-react-native';
+import { ChevronLeft, Camera, User, LogOut, Trash2, Shield, Bell, Search, Users, X, UserPlus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useSquads } from '../context/SquadContext';
 import { RootStackParamList } from '../navigation/types';
@@ -22,6 +22,9 @@ interface SquadMember {
 
 import { useUser } from '../context/UserContext';
 import { useLanguage } from '../context/LanguageContext';
+import { searchUsers } from '../services/userService';
+import { UserProfile } from '../types';
+import { addMemberToGroup, getGroupMembers } from '../services/groupService';
 
 export default function SquadSettingsScreen() {
     const { colors } = useTheme();
@@ -40,6 +43,46 @@ export default function SquadSettingsScreen() {
     const [isPublic, setIsPublic] = useState(true);
     const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
+    // Add Member State
+    const [addMemberModalVisible, setAddMemberModalVisible] = useState(false);
+    const [userSearchQuery, setUserSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<UserProfile[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [isAddingUser, setIsAddingUser] = useState<string | null>(null);
+
+    // Search effect for users to add
+    useEffect(() => {
+        if (!addMemberModalVisible) return;
+
+        const delayDebounceFn = setTimeout(async () => {
+            if (userSearchQuery.trim()) {
+                setIsSearching(true);
+                const results = await searchUsers(userSearchQuery);
+                const filteredResults = results.filter(r => !members.some(m => m.id === r.id));
+                setSearchResults(filteredResults);
+                setIsSearching(false);
+            } else {
+                setSearchResults([]);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [userSearchQuery, addMemberModalVisible]);
+
+    const handleAddMember = async (userId: string) => {
+        setIsAddingUser(userId);
+        try {
+            await addMemberToGroup(squadId, userId);
+            Alert.alert('Success', 'Member added successfully');
+            setAddMemberModalVisible(false);
+            // In a real app we would want to refresh the squad members list here
+        } catch (e: any) {
+            Alert.alert('Error', e.message || 'Failed to add member');
+        } finally {
+            setIsAddingUser(null);
+        }
+    };
+
     // Sync with context if it changes from outside (unlikely while focused here but good practice)
     useEffect(() => {
         if (squad) {
@@ -49,40 +92,41 @@ export default function SquadSettingsScreen() {
         }
     }, [squad]);
 
-    // Generate Mock Members
-    const members = React.useMemo(() => {
-        const count = squad?.members || 3;
-        const currentUserMember: SquadMember = {
-            id: 'current-user',
-            name: user.name,
-            avatarColor: '#FCA5A5',
-            role: 'Admin',
-            isCurrentUser: true,
-            profileImage: user.profileImage || undefined
+    const [members, setMembers] = useState<SquadMember[]>([]);
+
+    useEffect(() => {
+        const fetchMembers = async () => {
+            try {
+                const fetchedMembers = await getGroupMembers(squadId);
+                const colors = ['#FCA5A5', '#93C5FD', '#FCD34D', '#86EFAC', '#C4B5FD', '#FDBA74'];
+
+                const mappedMembers: SquadMember[] = fetchedMembers.map((m: any, i: number) => ({
+                    id: m.id,
+                    name: m.name,
+                    avatarColor: colors[i % colors.length],
+                    role: m.role,
+                    isCurrentUser: m.id === user?.id,
+                    profileImage: m.profileImage || undefined,
+                    streak: m.streak
+                }));
+
+                // Sort admin/current user to top
+                mappedMembers.sort((a, b) => {
+                    if (a.role === 'Admin' && b.role !== 'Admin') return -1;
+                    if (b.role === 'Admin' && a.role !== 'Admin') return 1;
+                    if (a.isCurrentUser && !b.isCurrentUser) return -1;
+                    if (b.isCurrentUser && !a.isCurrentUser) return 1;
+                    return 0;
+                });
+
+                setMembers(mappedMembers);
+            } catch (error) {
+                console.error("Failed to load members", error);
+            }
         };
 
-        const baseMembers: SquadMember[] = [
-            currentUserMember,
-            { id: '2', name: 'Sarah', avatarColor: '#93C5FD', role: 'Member' },
-            { id: '3', name: 'Mike', avatarColor: '#FCD34D', role: 'Member' }
-        ];
-
-        if (count <= 3) return baseMembers.slice(0, count);
-
-        const extraMembers: SquadMember[] = [];
-        const colors = ['#FCA5A5', '#93C5FD', '#FCD34D', '#86EFAC', '#C4B5FD', '#FDBA74'];
-
-        for (let i = 4; i <= count; i++) {
-            extraMembers.push({
-                id: i.toString(),
-                name: `Member ${i}`,
-                avatarColor: colors[i % colors.length],
-                role: 'Member'
-            });
-        }
-
-        return [...baseMembers, ...extraMembers];
-    }, [squad?.members]);
+        fetchMembers();
+    }, [squadId, addMemberModalVisible]); // Refresh members when modal closes!
 
 
     const handleSave = () => {
@@ -261,7 +305,15 @@ export default function SquadSettingsScreen() {
 
                 {/* Participants */}
                 <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>{t('participants').toUpperCase()} ({members.length})</Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <Text style={styles.sectionTitle}>{t('participants').toUpperCase()} ({members.length})</Text>
+                        {members.find(m => m.isCurrentUser)?.role === 'Admin' && (
+                            <TouchableOpacity onPress={() => setAddMemberModalVisible(true)} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 4 }}>
+                                <UserPlus size={16} color="#2563EB" style={{ marginRight: 4 }} />
+                                <Text style={{ color: '#2563EB', fontWeight: 'bold', fontSize: 13 }}>Add Member</Text>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                     <View style={styles.card}>
                         {members.map((member, index) => (
                             <View key={member.id}>
@@ -308,6 +360,99 @@ export default function SquadSettingsScreen() {
                 </View>
 
             </ScrollView>
+
+            {/* Add Member Modal */}
+            <Modal visible={addMemberModalVisible} animationType="slide" presentationStyle="pageSheet">
+                <View style={{ flex: 1, backgroundColor: colors.background }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A' }}>Add Member</Text>
+                        <TouchableOpacity onPress={() => {
+                            setAddMemberModalVisible(false);
+                            setUserSearchQuery('');
+                            setSearchResults([]);
+                        }}>
+                            <X size={24} color="#64748B" />
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={{ padding: 20 }}>
+                        <View style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            backgroundColor: '#FFF',
+                            borderWidth: 1,
+                            borderColor: '#E2E8F0',
+                            borderRadius: 16,
+                            paddingHorizontal: 16,
+                            height: 52,
+                            marginBottom: 20
+                        }}>
+                            <Search size={20} color="#94A3B8" style={{ marginRight: 12 }} />
+                            <TextInput
+                                placeholder="Search users by name or email..."
+                                placeholderTextColor="#94A3B8"
+                                style={{ flex: 1, fontSize: 16, color: colors.text }}
+                                value={userSearchQuery}
+                                onChangeText={setUserSearchQuery}
+                                autoFocus
+                            />
+                        </View>
+
+                        <ScrollView>
+                            {isSearching ? (
+                                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>Searching...</Text>
+                                </View>
+                            ) : searchResults.length > 0 ? searchResults.map((userRes) => (
+                                <View key={userRes.id} style={{
+                                    backgroundColor: '#FFF',
+                                    borderRadius: 16,
+                                    padding: 16,
+                                    borderWidth: 1,
+                                    borderColor: '#F1F5F9',
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'space-between',
+                                    marginBottom: 12
+                                }}>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                        <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#E2E8F0', overflow: 'hidden', marginRight: 12 }}>
+                                            {userRes.profileImage ? (
+                                                <Image source={{ uri: userRes.profileImage }} style={{ width: '100%', height: '100%' }} />
+                                            ) : (
+                                                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                                                    <Users size={24} color="#94A3B8" />
+                                                </View>
+                                            )}
+                                        </View>
+                                        <View>
+                                            <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 2 }}>{userRes.name}</Text>
+                                            <Text style={{ fontSize: 13, color: '#64748B' }}>Streak: {userRes.streak} days 🔥</Text>
+                                        </View>
+                                    </View>
+                                    <TouchableOpacity
+                                        onPress={() => handleAddMember(userRes.id)}
+                                        disabled={isAddingUser === userRes.id}
+                                        style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}
+                                    >
+                                        <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 14 }}>
+                                            {isAddingUser === userRes.id ? 'Adding...' : 'Add'}
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+                            )) : userSearchQuery.trim() !== '' ? (
+                                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>No users found matching "{userSearchQuery}"</Text>
+                                </View>
+                            ) : (
+                                <View style={{ alignItems: 'center', marginTop: 40 }}>
+                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>Search for users to add them to your squad.</Text>
+                                </View>
+                            )}
+                        </ScrollView>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }

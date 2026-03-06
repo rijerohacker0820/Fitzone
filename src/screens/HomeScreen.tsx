@@ -126,17 +126,17 @@ export default function HomeScreen() {
                 {/* Profile Avatar */}
                 <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
                     <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FECACA', borderWidth: 2, borderColor: colors.secondary, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-                        {user.profileImage ? (
+                        {user?.profileImage ? (
                             <Image source={{ uri: user.profileImage }} style={{ width: '100%', height: '100%' }} />
                         ) : (
-                            <Text style={{ color: '#7F1D1D', fontWeight: 'bold' }}>{user.name.charAt(0)}</Text>
+                            <Text style={{ color: '#7F1D1D', fontWeight: 'bold' }}>{user?.name?.charAt(0)}</Text>
                         )}
                     </View>
                 </TouchableOpacity>
             </View>
 
             <View style={{ marginBottom: 24 }}>
-                <Text style={{ fontSize: 28, fontWeight: 'bold', color: colors.text }}>{t('welcomeBack')}, {user.name.split(' ')[0]}</Text>
+                <Text style={{ fontSize: 28, fontWeight: 'bold', color: colors.text }}>{t('welcomeBack')}, {user?.name?.split(' ')[0]}</Text>
                 <Text style={{ fontSize: 16, color: colors.textSecondary, marginTop: 4 }}>{t('momentumMsg')}</Text>
             </View>
 
