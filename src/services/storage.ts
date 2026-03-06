@@ -38,21 +38,21 @@ export const getUserProfile = async (): Promise<UserProfile | null> => {
             id: userData.id || 'unknown-id',
             name: userData.fullName || 'User',
             email: userData.email || 'user@example.com',
-            bio: userData.bio || 'Fitness enthusiast',
-            theme: userData.themePreference || 'Clean Blue',
-            language: userData.languagePreference || 'es',
+            bio: userData.bio || '',
+            theme: userData.theme || 'Clean Blue',
+            language: userData.language || 'es',
             avatarUrl: userData.avatarUrl || 'https://i.pravatar.cc/150?img=12',
             profileImage: userData.avatarUrl || null,
             height: userData.height || 0,
             weight: userData.weight || 0,
             streak: userData.streak || 0,
             stats: {
-                workoutsCompleted: 0,
-                minutesTrained: 0,
+                workoutsCompleted: userData.totalWorkouts || 0,
+                minutesTrained: userData.totalMinutesTrained || 0,
                 streakDays: userData.streak || 0,
                 weightLifted: 0
             },
-            weeklyWorkoutGoal: 4,
+            weeklyWorkoutGoal: userData.weeklyGoal || 4,
             lastGoalChange: null
         };
 

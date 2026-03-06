@@ -118,8 +118,8 @@ export default function SquadDetailScreen() {
                     name: m.name || 'Unknown',
                     avatarColor: AVATAR_COLORS[index % AVATAR_COLORS.length],
                     sessionsCompleted: m.weeklyWorkouts || 0,
-                    sessionsTarget: 4, // Weekly goal
-                    streak: (m.weeklyWorkouts || 0) >= 4,
+                    sessionsTarget: m.weeklyGoal || 4, // From weekly plan, default 4
+                    streak: (m.weeklyWorkouts || 0) >= (m.weeklyGoal || 4),
                     isCurrentUser: m.id === user?.id,
                     profileImage: m.profileImage || undefined,
                     role: m.role
