@@ -204,24 +204,11 @@ export default function SquadDetailScreen() {
         const textToSend = message.trim();
         setMessage('');
 
-        // Optimistic UI for immediate feedback
-        const tempId = Date.now().toString();
-        const optimisticMsg: ChatMessage = {
-            id: tempId,
-            senderId: user?.id || '1',
-            senderName: user?.name || 'You',
-            senderImage: user?.profileImage || undefined,
-            text: textToSend,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            type: 'text'
-        };
-        setMessages(prev => [...prev, optimisticMsg]);
-
         try {
             await chatService.sendMessage(squadId, { text: textToSend, type: 'text' });
         } catch (error) {
             Alert.alert('Error', 'No se pudo enviar el mensaje.');
-            setMessages(prev => prev.filter(m => m.id !== tempId)); // Rollback
+            setMessage(textToSend); // Restore message
         }
     };
 

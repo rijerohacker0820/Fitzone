@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Dimensions, Modal, FlatList, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions, Modal, FlatList, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { ChevronLeft, Calendar as CalendarIcon, Clock, Plus, ChevronRight, Check, Dumbbell } from 'lucide-react-native';

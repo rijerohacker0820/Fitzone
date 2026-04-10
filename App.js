@@ -21,16 +21,20 @@ const MainApp = () => {
   );
 };
 
+import ErrorBoundary from './src/components/ErrorBoundary';
+
 export default function App() {
   return (
-    <LanguageProvider>
-      <ThemeProvider>
-        <UserProvider>
-          <SquadProvider>
-            <MainApp />
-          </SquadProvider>
-        </UserProvider>
-      </ThemeProvider>
-    </LanguageProvider>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <ThemeProvider>
+          <UserProvider>
+            <SquadProvider>
+              <MainApp />
+            </SquadProvider>
+          </UserProvider>
+        </ThemeProvider>
+      </LanguageProvider>
+    </ErrorBoundary>
   );
 }

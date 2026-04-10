@@ -13,9 +13,11 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     const [themeName, setThemeName] = useState<ProfileTheme>('Clean Blue');
 
+    const safeThemeName = themeName && themes[themeName] ? themeName : 'Clean Blue';
+
     const value = {
-        themeName,
-        colors: themes[themeName],
+        themeName: safeThemeName,
+        colors: themes[safeThemeName],
         setTheme: setThemeName,
     };
 

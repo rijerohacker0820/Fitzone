@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import HomeScreen from '../screens/HomeScreen';
 import RoutinesScreen from '../screens/RoutinesScreen';
 import SocialScreen from '../screens/SocialScreen';
-import DiscoverScreen from '../screens/DiscoverScreen';
+import MembershipScreen from '../screens/MembershipScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -42,7 +42,7 @@ export default function TabNavigator() {
                 name="Home"
                 component={HomeScreen}
                 options={{
-                    tabBarLabel: t('home'),
+                    tabBarLabel: t('home') || 'Home',
                     tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
                 }}
             />
@@ -50,7 +50,7 @@ export default function TabNavigator() {
                 name="Routines"
                 component={RoutinesScreen}
                 options={{
-                    tabBarLabel: t('routines'),
+                    tabBarLabel: t('routines') || 'Routines',
                     tabBarIcon: ({ color, size }) => <Dumbbell color={color} size={size} />,
                 }}
             />
@@ -58,15 +58,15 @@ export default function TabNavigator() {
                 name="Social"
                 component={SocialScreen}
                 options={{
-                    tabBarLabel: t('social'),
+                    tabBarLabel: t('social') || 'Social',
                     tabBarIcon: ({ color, size }) => <Users color={color} size={size} />,
                 }}
             />
             <Tab.Screen
-                name="Discover"
-                component={DiscoverScreen}
+                name="Membership"
+                component={MembershipScreen}
                 options={{
-                    tabBarLabel: t('discover'),
+                    tabBarLabel: 'Planes',
                     tabBarIcon: ({ color, size }) => <Compass color={color} size={size} />,
                 }}
             />
@@ -74,7 +74,7 @@ export default function TabNavigator() {
                 name="Profile"
                 component={ProfileScreen}
                 options={{
-                    tabBarLabel: t('profile'),
+                    tabBarLabel: t('profile') || 'Profile',
                     tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
                 }}
             />
