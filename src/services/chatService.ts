@@ -1,9 +1,10 @@
 import * as signalR from '@microsoft/signalr';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import apiClient from '../api/apiClient';
+import apiClient, { USE_PRODUCTION_API, LOCAL_URL } from '../api/apiClient';
 
-const IS_LOCAL = false; // Set to false to use production backend
-const HUB_URL = IS_LOCAL ? 'http://SU_DIRECCION_IP:5062/chathub' : 'http://Fitzone-Development.somee.com/chathub';
+const HUB_URL = USE_PRODUCTION_API 
+    ? 'http://Fitzone-Development.somee.com/chathub' 
+    : `${LOCAL_URL}/chathub`;
 
 export interface ChatMessagePayload {
     text: string;

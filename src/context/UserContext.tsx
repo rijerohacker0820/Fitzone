@@ -15,6 +15,7 @@ interface UserContextType {
     logout: () => Promise<void>;
     updateProfile: (updates: Partial<UserProfile>) => void;
     updateStats: (newStats: Partial<UserStats>) => void;
+    refreshUser: () => Promise<void>;
 }
 
 const defaultStats: UserStats = {
@@ -110,8 +111,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         updateProfile({ stats: updatedStats });
     };
 
+    const refreshUser = async () => {
+        try {
+            const profile = await getUserProfile();
+            if (profile) {
+                setUser(profile);
+            }
+        } catch (e) {
+            console.error("Failed to refresh profile", e);
+        }
+    };
+
     return (
-        <UserContext.Provider value={{ user, token, isLoading, login, logout, updateProfile, updateStats }}>
+        <UserContext.Provider value={{ user, token, isLoading, login, logout, updateProfile, updateStats, refreshUser }}>
             {children}
         </UserContext.Provider>
     );

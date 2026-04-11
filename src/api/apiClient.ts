@@ -1,14 +1,17 @@
 import axios, { InternalAxiosRequestConfig, AxiosError } from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Platform } from 'react-native';
 
-// === ENTORNO DEL SERVIDOR (PRODUCCIÓN) ===
-// Descomenta esta línea para usar la API subida al servidor
-const BASE_URL = 'http://Fitzone-Development.somee.com/api';
+// Cambia a 'true' para usar la API subida al servidor (Producción), o 'false' para local (Desarrollo)
+export const USE_PRODUCTION_API = false;
 
-// === ENTORNO LOCAL (DESARROLLO) ===
-// Descomenta esta línea para usar la API en tu ordenador de forma local
-// Importante: Si estás en un simulador de iOS o Web, usa 'localhost'. Si estás en un emulador de Android usa '10.0.2.2'. Si es dispositivo físico, debes usar la IP de red.
-//const BASE_URL = 'http://localhost:5062/api';
+// URL local dinámica dependiendo de si es Android o iOS/Web
+export const LOCAL_URL = Platform.OS === 'android' ? 'http://10.0.2.2:5062' : 'http://localhost:5062';
+
+// Configuración automática de la URL base
+export const BASE_URL = USE_PRODUCTION_API 
+    ? 'http://Fitzone-Development.somee.com/api' 
+    : `${LOCAL_URL}/api`;
 
 const apiClient = axios.create({
     baseURL: BASE_URL,

@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
+import { BASE_URL } from '../api/apiClient';
 
-const API_URL = 'http://Fitzone-Development.somee.com/api/auth';
+const API_URL = `${BASE_URL}/auth`;
 
 export interface LoginRequest {
     fullName: string; // The API seems to require this according to the user request, though usually login needs email/password. 
