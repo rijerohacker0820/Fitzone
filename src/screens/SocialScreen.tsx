@@ -212,7 +212,7 @@ export default function SocialScreen() {
                                 }}
                             >
                                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                                    <View style={{ flexDirection: 'row' }}>
+                                    <View style={{ flexDirection: 'row', flex: 1, alignItems: 'center' }}>
                                         <View style={{ width: 56, height: 56, borderRadius: 16, backgroundColor: squad.color || '#F1F5F9', alignItems: 'center', justifyContent: 'center', marginRight: 16, overflow: 'hidden' }}>
                                             {squad.image ? (
                                                 <Image source={{ uri: squad.image }} style={{ width: '100%', height: '100%' }} />
@@ -220,15 +220,15 @@ export default function SocialScreen() {
                                                 <Text style={{ fontSize: 24 }}>{squad.icon || '👥'}</Text>
                                             )}
                                         </View>
-                                        <View>
-                                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 }}>{squad.name}</Text>
-                                            <Text style={{ fontSize: 13, color: '#64748B', fontWeight: 'bold' }}>
+                                        <View style={{ flex: 1, marginRight: 8 }}>
+                                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#0F172A', marginBottom: 4 }} numberOfLines={1}>{squad.name}</Text>
+                                            <Text style={{ fontSize: 13, color: '#64748B', fontWeight: 'bold' }} numberOfLines={1} adjustsFontSizeToFit>
                                                 {squad.members} {t('members').toUpperCase()}  <Text style={{ color: '#E2E8F0' }}>•</Text>  <Text style={{ color: '#10B981' }}>{squad.loggedToday} {t('loggedToday').toUpperCase()}</Text>
                                             </Text>
                                         </View>
                                     </View>
                                     {squad.streak > 0 && (
-                                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#FFEDD5' }}>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF7ED', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: '#FFEDD5', flexShrink: 0 }}>
                                             <Flame size={14} color="#F97316" fill="#F97316" style={{ marginRight: 4 }} />
                                             <Text style={{ color: '#F97316', fontWeight: 'bold', fontSize: 12 }}>{squad.streak}</Text>
                                         </View>
@@ -335,7 +335,7 @@ export default function SocialScreen() {
                     <View style={{ gap: 16 }}>
                         {isSearching ? (
                             <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>Searching...</Text>
+                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>{t('searching')}</Text>
                             </View>
                         ) : searchResults.length > 0 ? searchResults.map((userRes) => (
                             <View
@@ -361,20 +361,20 @@ export default function SocialScreen() {
                                             </View>
                                         )}
                                     </View>
-                                    <View>
-                                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 2 }}>{userRes.name}</Text>
-                                        <Text style={{ fontSize: 13, color: '#64748B' }}>Streak: {userRes.streak} days 🔥</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 2 }} numberOfLines={1}>{userRes.name}</Text>
+                                        <Text style={{ fontSize: 13, color: '#64748B' }}>{t('squadStreak').replace('{days}', userRes.streak.toString())}</Text>
                                     </View>
                                 </View>
                             </View>
                         )) : friendSearchQuery.trim() !== '' ? (
                             <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>No users found matching "{friendSearchQuery}"</Text>
+                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>{t('noUsersFound')} "{friendSearchQuery}"</Text>
                             </View>
                         ) : (
                             <View style={{ alignItems: 'center', marginTop: 40 }}>
                                 <Users size={48} color="#E2E8F0" style={{ marginBottom: 16 }} />
-                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>Search for friends to see their profile</Text>
+                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>{t('searchFriendsPrompt')}</Text>
                             </View>
                         )}
                     </View>
@@ -390,17 +390,17 @@ export default function SocialScreen() {
             >
                 <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
                     <View style={{ backgroundColor: '#FFF', width: '90%', borderRadius: 24, padding: 24 }}>
-                        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#0F172A' }}>Create New Squad</Text>
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 16, color: '#0F172A' }}>{t('createNewSquad')}</Text>
 
                         <RNTextInput
-                            placeholder="Squad Name"
+                            placeholder={t('squadName')}
                             value={newGroupName}
                             onChangeText={setNewGroupName}
                             style={{ borderWidth: 1, borderColor: '#E2E8F0', borderRadius: 12, padding: 12, marginBottom: 16, fontSize: 16 }}
                         />
 
                         <RNTextInput
-                            placeholder="Description"
+                            placeholder={t('description')}
                             value={newGroupDesc}
                             onChangeText={setNewGroupDesc}
                             multiline
@@ -413,13 +413,13 @@ export default function SocialScreen() {
                                 onPress={() => setIsCreatingGroup(false)}
                                 style={{ flex: 1, padding: 14, borderRadius: 12, backgroundColor: '#F1F5F9', alignItems: 'center' }}
                             >
-                                <Text style={{ fontWeight: 'bold', color: '#64748B' }}>Cancel</Text>
+                                <Text style={{ fontWeight: 'bold', color: '#64748B' }}>{t('cancel')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={handleCreateGroup}
                                 style={{ flex: 1, padding: 14, borderRadius: 12, backgroundColor: '#2563EB', alignItems: 'center' }}
                             >
-                                <Text style={{ fontWeight: 'bold', color: '#FFF' }}>Create Squad</Text>
+                                <Text style={{ fontWeight: 'bold', color: '#FFF' }}>{t('createSquad')}</Text>
                             </TouchableOpacity>
                         </View>
                     </View>
