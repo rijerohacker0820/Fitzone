@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity, Modal, StyleSheet, Dimensions, Animated, TouchableWithoutFeedback } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { X, Dumbbell, History, Sparkles, Play } from 'lucide-react-native';
+import { useLanguage } from '../context/LanguageContext';
 
 interface Props {
     visible: boolean;
@@ -13,6 +14,7 @@ interface Props {
 
 export default function FABMenu({ visible, onClose, onAdd, onBuild, onExisting }: Props) {
     const { colors } = useTheme();
+    const { t } = useLanguage();
 
     return (
         <Modal
@@ -70,7 +72,7 @@ export default function FABMenu({ visible, onClose, onAdd, onBuild, onExisting }
                         >
                             <View style={styles.textContainer}>
                                 <Text style={styles.title}>Log Workout</Text>
-                                <Text style={styles.subtitle}>ONE-OFF QUICK SESSION</Text>
+                                <Text style={styles.subtitle}>{t('oneOffSessionQuick')}</Text>
                             </View>
                             <View style={[styles.iconContainer, { backgroundColor: '#DCFCE7' }]}>
                                 <History size={24} color="#16A34A" />

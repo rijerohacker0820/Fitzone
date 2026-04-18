@@ -37,13 +37,13 @@ export default function ProfileScreen() {
 
     const handleImageSelection = () => {
         Alert.alert(
-            "Profile Photo",
-            "Change your profile photo",
+            t('profilePhoto'),
+            t('changeProfilePhoto'),
             [
-                { text: "Camera", onPress: takePhoto },
-                { text: "Gallery", onPress: pickImage },
-                { text: "Remove Photo", style: "destructive", onPress: () => updateProfile({ profileImage: null }) },
-                { text: "Cancel", style: "cancel" }
+                { text: t('camera'), onPress: takePhoto },
+                { text: t('gallery'), onPress: pickImage },
+                { text: t('removePhoto'), style: "destructive", onPress: () => updateProfile({ profileImage: null }) },
+                { text: t('cancel'), style: "cancel" }
             ]
         );
     };
@@ -52,7 +52,7 @@ export default function ProfileScreen() {
         try {
             const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (permissionResult.granted === false) {
-                Alert.alert("Permission Required", "Camera roll access is needed to select a photo.");
+                Alert.alert(t('permissionRequired'), t('cameraRollPermissionMsg'));
                 return;
             }
 
@@ -67,7 +67,7 @@ export default function ProfileScreen() {
                 updateProfile({ profileImage: result.assets[0].uri });
             }
         } catch (error: any) {
-            Alert.alert("Error", "Failed to pick image: " + error.message);
+            Alert.alert(t('error'), t('errorPickImage') + ": " + error.message);
         }
     };
 
@@ -75,7 +75,7 @@ export default function ProfileScreen() {
         try {
             const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
             if (permissionResult.granted === false) {
-                Alert.alert("Permission Required", "Camera access is needed to take a photo.");
+                Alert.alert(t('permissionRequired'), t('cameraPermissionMsg'));
                 return;
             }
 
@@ -89,23 +89,23 @@ export default function ProfileScreen() {
                 updateProfile({ profileImage: result.assets[0].uri });
             }
         } catch (error: any) {
-            Alert.alert("Error", "Failed to take photo: " + error.message);
+            Alert.alert(t('error'), t('errorTakePhoto') + ": " + error.message);
         }
     };
 
 
     const handleReset = () => {
         customAlert(
-            "Developer Reset",
-            "This will clear ALL workout history, routines, and profile data. Proceed?",
+            t('developerReset'),
+            t('developerResetMsg'),
             [
-                { text: "Cancel", style: "cancel" },
+                { text: t('cancel'), style: "cancel" },
                 {
-                    text: "Reset Everything",
+                    text: t('resetEverything'),
                     style: "destructive",
                     onPress: async () => {
                         await clearAllData();
-                        customAlert("Success", "All data cleared. Please restart the app for changes to take effect.");
+                        customAlert(t('success'), t('allDataCleared'));
                     }
                 }
             ]
@@ -126,8 +126,8 @@ export default function ProfileScreen() {
 
         if (daysRemaining > 0) {
             Alert.alert(
-                "Goal Locked",
-                `To ensure consistency, you can only change your goal once every 30 days.\n\nNext update available in ${daysRemaining} days.`
+                t('goalLocked'),
+                t('goalLockedMsg').replace('{days}', daysRemaining.toString())
             );
         } else {
             setShowGoalPicker(true);
@@ -140,7 +140,7 @@ export default function ProfileScreen() {
             lastGoalChange: new Date().toISOString()
         });
         setShowGoalPicker(false);
-        Alert.alert("Goal Updated", `Your new target is ${days} workouts per week. Go crush it!`);
+        Alert.alert(t('goalUpdated'), t('goalUpdatedMsg').replace('{days}', days.toString()));
     };
 
     const StatCard = ({ icon: Icon, value, label, color }: { icon: any, value: string, label: string, color: string }) => (
@@ -149,7 +149,7 @@ export default function ProfileScreen() {
                 <Icon size={20} color={color} />
             </View>
             <Text style={[styles.statValue, { color: colors.text }]}>{value}</Text>
-            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>{label}</Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]} numberOfLines={1} adjustsFontSizeToFit>{label}</Text>
         </View>
     );
 
@@ -159,16 +159,16 @@ export default function ProfileScreen() {
             onPress={onPress}
             activeOpacity={onPress ? 0.7 : 1}
         >
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 16 }}>
                 <View style={[styles.iconContainer, { backgroundColor: (color || colors.primary) + '15' }]}>
                     <Icon size={20} color={color || colors.primary} />
                 </View>
-                <View>
-                    <Text style={[styles.settingLabel, { color: colors.text }]}>{label}</Text>
+                <View style={{ flex: 1 }}>
+                    <Text style={[styles.settingLabel, { color: colors.text }]} numberOfLines={1}>{label}</Text>
                 </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                {value && <Text style={{ color: colors.textSecondary, marginRight: 8, fontSize: 13, fontWeight: '500' }}>{value}</Text>}
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
+                {value && <Text style={{ color: colors.textSecondary, marginRight: 8, fontSize: 13, fontWeight: '500' }} numberOfLines={1}>{value}</Text>}
                 <ChevronRight size={16} color={colors.textSecondary} />
             </View>
         </TouchableOpacity>
@@ -202,13 +202,13 @@ export default function ProfileScreen() {
                                 value={tempName}
                                 onChangeText={setTempName}
                                 style={[styles.input, { color: colors.text, borderColor: colors.textSecondary + '40' }]}
-                                placeholder="Name"
+                                placeholder={t('yourName')}
                             />
                             <TextInput
                                 value={tempBio}
                                 onChangeText={setTempBio}
                                 style={[styles.input, { color: colors.textSecondary, fontSize: 14, height: 40, borderColor: colors.textSecondary + '40' }]}
-                                placeholder="Bio"
+                                placeholder={t('tellAboutYourself')}
                                 multiline
                             />
                             <TouchableOpacity onPress={handleSaveProfile} style={styles.saveButton}>
@@ -244,7 +244,7 @@ export default function ProfileScreen() {
                     />
                     <StatCard
                         icon={Award}
-                        value={`${user.stats.streakDays} Day`}
+                        value={`${user.stats.streakDays} ${user.stats.streakDays === 1 ? t('dayUnit') : t('daysUnit')}`}
                         label={t('streak')}
                         color="#EF4444"
                     />
@@ -266,9 +266,9 @@ export default function ProfileScreen() {
                                     <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('goalSubtitle')}</Text>
                                 </View>
                             </View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
                                 <Text style={{ color: colors.primary, marginRight: 8, fontSize: 16, fontWeight: 'bold' }}>
-                                    {user.weeklyWorkoutGoal || 4} Days/Week
+                                    {user.weeklyWorkoutGoal || 4} {t('daysPerWeek')}
                                 </Text>
                                 <ChevronRight size={16} color={colors.textSecondary} />
                             </View>
@@ -280,7 +280,7 @@ export default function ProfileScreen() {
                     <Text style={[styles.sectionTitle, { color: colors.textSecondary }]}>{t('account')}</Text>
                     <View style={[styles.sectionContent, { backgroundColor: colors.card }]}>
                         <SettingItem icon={User} label={t('personalDetails')} value={user.email} />
-                        <SettingItem icon={Bell} label={t('notifications')} value="On" />
+                        <SettingItem icon={Bell} label={t('notifications')} value={t('enabled')} />
                         <SettingItem icon={Shield} label={t('privacy')} />
                         <SettingItem
                             icon={Globe}
@@ -384,7 +384,7 @@ export default function ProfileScreen() {
                     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
                         <View style={{ backgroundColor: colors.card, width: '80%', borderRadius: 24, padding: 24 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-                                <Text style={{ fontSize: 20, fontWeight: 'bold', color: colors.text }}>Select Language</Text>
+                                <Text style={{ fontSize: 20, fontWeight: 'bold', color: colors.text }}>{t('selectLanguage')}</Text>
                                 <TouchableOpacity onPress={() => setShowLanguagePicker(false)}>
                                     <X size={24} color={colors.textSecondary} />
                                 </TouchableOpacity>
@@ -509,9 +509,9 @@ const styles = StyleSheet.create({
     statCard: {
         flex: 1,
         borderRadius: 20,
-        padding: 16,
+        padding: 12,
         alignItems: 'center',
-        marginHorizontal: 6,
+        marginHorizontal: 4,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
         shadowRadius: 10,

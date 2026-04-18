@@ -253,7 +253,7 @@ export default function RoutinesScreen() {
                     }}>
                         <Dumbbell size={16} color={isCompletedToday ? '#16A34A' : "#94A3B8"} style={{ marginRight: 8 }} />
                         <Text style={{ color: isCompletedToday ? '#16A34A' : '#64748B', fontSize: 13, fontWeight: '600', flex: 1 }}>
-                            {item.exercises.length} exercises <Text style={{ color: isCompletedToday ? '#86EFAC' : '#CBD5E1', marginHorizontal: 4 }}>|</Text> <Text style={{ fontWeight: '400', fontSize: 12, color: isCompletedToday ? '#166534' : '#94A3B8' }}>{item.exercises.slice(0, 3).map(e => e.name).join(', ')}{item.exercises.length > 3 ? '...' : ''}</Text>
+                            {item.exercises.length} {t('exercises').toLowerCase()} <Text style={{ color: isCompletedToday ? '#86EFAC' : '#CBD5E1', marginHorizontal: 4 }}>|</Text> <Text style={{ fontWeight: '400', fontSize: 12, color: isCompletedToday ? '#166534' : '#94A3B8' }}>{item.exercises.slice(0, 3).map(e => e.name).join(', ')}{item.exercises.length > 3 ? '...' : ''}</Text>
                         </Text>
                     </View>
                 </TouchableOpacity>

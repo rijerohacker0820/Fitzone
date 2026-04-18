@@ -87,12 +87,12 @@ export default function HomeScreen() {
         // Create a blank "Quick Workout" routine
         const quickWorkout: WorkoutRoutine = {
             id: Crypto.randomUUID(),
-            name: 'Quick Workout',
+            name: t('quickWorkout'),
             exercises: [],
             date: new Date().toISOString(),
             duration: 0,
             status: 'in-progress',
-            tags: ['Quick Workout']
+            tags: ['Quick Workout'] // Keep as internal tag but shown translated below
         };
 
         setFabMenuVisible(false);

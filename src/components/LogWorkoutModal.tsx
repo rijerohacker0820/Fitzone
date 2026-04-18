@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, Modal, TouchableOpacity, TextInput, ScrollView, Alert, KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { WorkoutRoutine, Exercise, WorkoutSet } from '../types';
 import { X, Plus, Trash2, Star, Calendar, Minus, Check } from 'lucide-react-native';
 import * as Crypto from 'expo-crypto';
@@ -25,8 +26,9 @@ const SENSATIONS = [
 
 export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialRoutine }: Props) {
     const { colors } = useTheme();
+    const { t } = useLanguage();
 
-    const [name, setName] = useState('Quick Workout');
+    const [name, setName] = useState(''); // Initialized securely down in useEffect / focus
     const [duration, setDuration] = useState(1);
     const [exercises, setExercises] = useState<Exercise[]>([]);
     const [saveAsRoutine, setSaveAsRoutine] = useState(false);
@@ -144,7 +146,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
     };
 
     const resetForm = () => {
-        setName('Quick Workout');
+        setName(t('quickWorkout'));
         setDuration(1);
         setExercises([]);
         setSaveAsRoutine(false);
@@ -160,8 +162,8 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                     {/* Header */}
                     <View style={{ padding: 20, paddingTop: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <View>
-                            <Text style={{ color: colors.text, fontSize: 28, fontWeight: 'bold' }}>Quick Workout</Text>
-                            <Text style={{ color: colors.textSecondary, fontSize: 16 }}>One-off session</Text>
+                            <Text style={{ color: colors.text, fontSize: 28, fontWeight: 'bold' }}>{t('quickWorkout')}</Text>
+                            <Text style={{ color: colors.textSecondary, fontSize: 16 }}>{t('oneOffSession')}</Text>
                         </View>
                         <TouchableOpacity onPress={onClose} style={{ padding: 8 }}>
                             <X color={colors.textSecondary} size={28} />

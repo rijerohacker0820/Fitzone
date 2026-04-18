@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, TouchableOpacity } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Flame } from 'lucide-react-native';
 import { SquadMember } from '../context/SquadContext';
 
@@ -12,8 +13,9 @@ interface Props {
     members?: SquadMember[];
 }
 
-export default function StreakCard({ squadName = 'Iron Squad', streak = 0, onPress, isActive = false, members = [] }: Props) {
+export default function StreakCard({ squadName, streak = 0, onPress, isActive = false, members = [] }: Props) {
     const { colors } = useTheme();
+    const { t } = useLanguage();
 
     // Prioritize members who completed the streak, then others. Limit to 3.
     const displayMembers = React.useMemo(() => {
@@ -41,15 +43,15 @@ export default function StreakCard({ squadName = 'Iron Squad', streak = 0, onPre
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                         <Flame size={20} color={colors.primary} fill={colors.primary} />
                         <Text style={{ color: colors.text, fontSize: 14, fontWeight: '600', marginLeft: 8 }}>
-                            {squadName} Streak
+                            {squadName || 'Iron Squad'} {t('streakStr')}
                         </Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                         <Text style={{ fontSize: 32, fontWeight: 'bold', color: colors.text }}>{streak}</Text>
-                        <Text style={{ fontSize: 16, color: colors.textSecondary, marginLeft: 6 }}>days</Text>
+                        <Text style={{ fontSize: 16, color: colors.textSecondary, marginLeft: 6 }}>{streak === 1 ? t('dayUnit').toLowerCase() : t('daysUnit').toLowerCase()}</Text>
                     </View>
                     <Text style={{ color: colors.primary, fontSize: 14, marginTop: 4 }}>
-                        {streak > 0 ? "Great job! Keep the chain alive." : "Start a workout to build your streak!"}
+                        {streak > 0 ? t('keepChainAlive') : t('startWorkoutStreak')}
                     </Text>
                 </View>
 

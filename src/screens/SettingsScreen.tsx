@@ -39,10 +39,10 @@ export default function SettingsScreen() {
             // Also update global language context
             setLanguage(selectedLang);
 
-            Alert.alert(t('success'), 'Profile updated successfully');
+            Alert.alert(t('success'), t('profileUpdated'));
             navigation.goBack();
         } catch (error) {
-            Alert.alert('Error', 'Failed to update profile');
+            Alert.alert(t('error'), t('failedUpdateProfile'));
         } finally {
             setIsLoading(false);
         }
@@ -84,19 +84,19 @@ export default function SettingsScreen() {
                             style={[styles.input, { color: colors.text, borderColor: '#E2E8F0', backgroundColor: colors.background }]}
                             value={name}
                             onChangeText={setName}
-                            placeholder="Your Name"
+                            placeholder={t('yourName')}
                             placeholderTextColor={colors.textSecondary}
                         />
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={[styles.label, { color: colors.textSecondary, marginLeft: 24, marginBottom: 8 }]}>Bio</Text>
+                        <Text style={[styles.label, { color: colors.textSecondary, marginLeft: 24, marginBottom: 8 }]}>{t('bio')}</Text>
                         <TextInput
                             style={[styles.input, { color: colors.text, borderColor: '#E2E8F0', backgroundColor: colors.background, height: 80, textAlignVertical: 'top' }]}
                             value={bio}
                             onChangeText={setBio}
                             multiline
-                            placeholder="Tell us about yourself"
+                            placeholder={t('tellAboutYourself')}
                             placeholderTextColor={colors.textSecondary}
                         />
                     </View>
@@ -136,7 +136,7 @@ export default function SettingsScreen() {
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                         <Target size={16} color={colors.primary} style={{ marginRight: 8 }} />
-                        <Text style={[styles.label, { color: colors.textSecondary }]}>{t('weeklyGoal')} (days/week)</Text>
+                        <Text style={[styles.label, { color: colors.textSecondary }]}>{t('weeklyGoal')} ({t('daysWeekLabel')})</Text>
                     </View>
                     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                         {[1, 2, 3, 4, 5, 6, 7].map(num => (
@@ -188,7 +188,7 @@ export default function SettingsScreen() {
                     <View>
                         <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                             <Moon size={16} color={colors.primary} style={{ marginRight: 8 }} />
-                            <Text style={[styles.label, { color: colors.textSecondary }]}>Theme</Text>
+                            <Text style={[styles.label, { color: colors.textSecondary }]}>{t('theme')}</Text>
                         </View>
                         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                             {themes.map(themeName => (
