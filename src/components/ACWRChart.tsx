@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { useTheme } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
 import { ACWRData } from '../types';
 
 const { width } = Dimensions.get('window');
@@ -12,6 +13,7 @@ interface ACWRChartProps {
 
 export default function ACWRChart({ data }: ACWRChartProps) {
     const { colors } = useTheme();
+    const { t } = useLanguage();
 
     // Transform data for chart
     if (!data || data.length === 0) {
@@ -47,14 +49,14 @@ export default function ACWRChart({ data }: ACWRChartProps) {
         <View style={{ padding: 20, backgroundColor: colors.card, borderRadius: 24, marginBottom: 24, borderWidth: 1, borderColor: '#E2E8F0' }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.text, marginRight: 8 }}>Your Fitness Status</Text>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: colors.text, marginRight: 8 }}>{t('fitnessStatus')}</Text>
                 </View>
                 {/* Trend Icon Placeholder */}
                 <Text style={{ fontSize: 16, color: colors.textSecondary }}>↗</Text>
             </View>
 
             <Text style={{ color: colors.primary, fontSize: 12, fontWeight: 'bold', marginBottom: 20, textTransform: 'uppercase' }}>
-                TODAY IS A REST DAY. YOUR BODY IS RECOVERING.
+                {t('restDayMessage')}
             </Text>
 
             <View style={{ height: 180, alignItems: 'center', justifyContent: 'center' }}>
@@ -91,18 +93,18 @@ export default function ACWRChart({ data }: ACWRChartProps) {
                 )}
             </View>
 
-            <View style={{ flexDirection: 'row', marginTop: 16, alignItems: 'center', gap: 12 }}>
+            <View style={{ flexDirection: 'row', marginTop: 16, alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#32D74B', marginRight: 4 }} />
-                    <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '600' }}>OPTIMAL PROGRESS</Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '600' }}>{t('optimalProgress')}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.primary, marginRight: 4 }} />
-                    <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '600' }}>STABLE</Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '600' }}>{t('stable')}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#FF453A', marginRight: 4 }} />
-                    <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '600' }}>FATIGUE RISK</Text>
+                    <Text style={{ color: colors.textSecondary, fontSize: 10, fontWeight: '600' }}>{t('fatigueRisk')}</Text>
                 </View>
             </View>
         </View>
