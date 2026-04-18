@@ -257,17 +257,17 @@ export default function ProfileScreen() {
                             style={[styles.settingItem, { borderBottomColor: colors.background }]}
                             onPress={handleGoalPress}
                         >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 16 }}>
                                 <View style={[styles.iconContainer, { backgroundColor: '#10B98115' }]}>
                                     <Target size={20} color="#10B981" />
                                 </View>
-                                <View>
-                                    <Text style={[styles.settingLabel, { color: colors.text }]}>{t('weeklyGoal')}</Text>
-                                    <Text style={{ fontSize: 12, color: colors.textSecondary }}>{t('goalSubtitle')}</Text>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={[styles.settingLabel, { color: colors.text }]} numberOfLines={1}>{t('weeklyGoal')}</Text>
+                                    <Text style={{ fontSize: 12, color: colors.textSecondary }} numberOfLines={1} adjustsFontSizeToFit>{t('goalSubtitle')}</Text>
                                 </View>
                             </View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
-                                <Text style={{ color: colors.primary, marginRight: 8, fontSize: 16, fontWeight: 'bold' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1, maxWidth: '45%' }}>
+                                <Text style={{ color: colors.primary, marginRight: 8, fontSize: 16, fontWeight: 'bold', flexShrink: 1 }} numberOfLines={1} adjustsFontSizeToFit>
                                     {user.weeklyWorkoutGoal || 4} {t('daysPerWeek')}
                                 </Text>
                                 <ChevronRight size={16} color={colors.textSecondary} />
