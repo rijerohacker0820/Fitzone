@@ -554,7 +554,7 @@ export default function SquadDetailScreen() {
                                                 <Text style={{ color: isStreakActive ? '#BFDBFE' : '#94A3B8', fontSize: 10, fontWeight: 'bold', marginBottom: 2, letterSpacing: 0.5 }}>{t('teamPower').toUpperCase()}</Text>
                                                 <Text style={{ color: isStreakActive ? '#FFF' : '#475569', fontSize: 20, fontWeight: 'bold' }}>{teamPower}%</Text>
                                             </View>
-                                            <Target size={20} color={isStreakActive ? '#BFDBFE' : '#CBD5E1'} />
+                                            <Target size={0} color={isStreakActive ? '#BFDBFE' : '#CBD5E1'} />
                                         </View>
                                     </View>
                                     <View style={{ backgroundColor: isStreakActive ? 'rgba(255,255,255,0.1)' : '#F8FAFC', padding: 12, borderRadius: 16 }}>
@@ -563,7 +563,7 @@ export default function SquadDetailScreen() {
                                                 <Text style={{ color: isStreakActive ? '#BFDBFE' : '#94A3B8', fontSize: 10, fontWeight: 'bold', marginBottom: 2, letterSpacing: 0.5 }}>{t('activity').toUpperCase()}</Text>
                                                 <Text style={{ color: isStreakActive ? '#FFF' : '#475569', fontSize: 20, fontWeight: 'bold' }}>{membersActiveThisWeek}/{members.length}</Text>
                                             </View>
-                                            <Zap size={20} color={isStreakActive ? '#BFDBFE' : '#CBD5E1'} />
+                                            <Zap size={0} color={isStreakActive ? '#BFDBFE' : '#CBD5E1'} />
                                         </View>
                                     </View>
                                 </View>
@@ -574,10 +574,10 @@ export default function SquadDetailScreen() {
                         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                                 <Trophy size={18} color="#D97706" />
-                                <Text style={{ fontSize: 14, fontWeight: 'bold', color: '#94A3B8', letterSpacing: 0.5 }}>{t('weeklyGoalsProgress').toUpperCase()}</Text>
+                                <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#94A3B8', letterSpacing: 0.5 }}>{t('weeklyGoalsProgress').toUpperCase()}</Text>
                             </View>
                             <View style={{ backgroundColor: '#E2E8F0', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 }}>
-                                <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748B' }}>{t('targetSessions').replace('{target}', weeklySessionsTarget.toString()).toUpperCase()}</Text>
+                                <Text style={{ fontSize: 7, fontWeight: 'bold', color: '#64748B' }}>{t('targetSessions').replace('{target}', weeklySessionsTarget.toString()).toUpperCase()}</Text>
                             </View>
                         </View>
 
@@ -614,7 +614,7 @@ export default function SquadDetailScreen() {
 
                                                 <View style={{ marginLeft: 12 }}>
                                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0F172A' }}>{member.name}</Text>
+                                                        <Text style={{ fontSize: 13, fontWeight: 'bold', color: '#0F172A' }}>{member.name}</Text>
                                                         {member.streak && <Text style={{ fontSize: 10 }}>⭐</Text>}
                                                     </View>
                                                     {isGoalMet ? (
@@ -630,8 +630,8 @@ export default function SquadDetailScreen() {
                                             </View>
                                             <View style={{ alignItems: 'flex-end' }}>
                                                 <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 2 }}>
-                                                    <Text style={{ fontSize: 16, fontWeight: 'bold', color: isGoalMet ? '#10B981' : '#64748B' }}>{member.sessionsCompleted}/{member.sessionsTarget}</Text>
-                                                    <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#94A3B8' }}>{t('days').toUpperCase()}</Text>
+                                                    <Text style={{ fontSize: 14, fontWeight: 'bold', color: isGoalMet ? '#10B981' : '#64748B' }}>{member.sessionsCompleted}/{member.sessionsTarget}</Text>
+                                                    <Text style={{ fontSize: 8, fontWeight: 'bold', color: '#94A3B8' }}>{t('days').toUpperCase()}</Text>
                                                 </View>
                                                 {isGoalMet && <Trophy size={16} color="#10B981" style={{ marginTop: 4 }} />}
                                             </View>
