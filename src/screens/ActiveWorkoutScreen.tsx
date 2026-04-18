@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Animated } from 'react-native';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Animated, Dimensions, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { WorkoutRoutine, WorkoutSet } from '../types';
@@ -34,7 +34,57 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
     if (!routine) return null; // Or some error state
 
     const [elapsed, setElapsed] = useState(0);
-    const [isRunning, setIsRunning] = useState(true);
+    const [isRunning, setIsRunning] = useState(false);
+
+    // --- Countdown State ---
+    const [showCountdown, setShowCountdown] = useState(true);
+    const [countdownValue, setCountdownValue] = useState(3);
+    const countdownScale = useRef(new Animated.Value(0.3)).current;
+    const countdownOpacity = useRef(new Animated.Value(0)).current;
+    const overlayOpacity = useRef(new Animated.Value(1)).current;
+
+    const animateCountdownTick = useCallback(() => {
+        countdownScale.setValue(0.3);
+        countdownOpacity.setValue(0);
+        Animated.parallel([
+            Animated.spring(countdownScale, {
+                toValue: 1,
+                friction: 4,
+                tension: 60,
+                useNativeDriver: true,
+            }),
+            Animated.timing(countdownOpacity, {
+                toValue: 1,
+                duration: 200,
+                useNativeDriver: true,
+            }),
+        ]).start();
+    }, [countdownScale, countdownOpacity]);
+
+    useEffect(() => {
+        if (!showCountdown) return;
+        animateCountdownTick();
+
+        if (countdownValue > 0) {
+            const timer = setTimeout(() => {
+                setCountdownValue(prev => prev - 1);
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else {
+            // countdownValue === 0 means we're showing "Listo!"
+            const timer = setTimeout(() => {
+                Animated.timing(overlayOpacity, {
+                    toValue: 0,
+                    duration: 400,
+                    useNativeDriver: true,
+                }).start(() => {
+                    setShowCountdown(false);
+                    setIsRunning(true);
+                });
+            }, 800);
+            return () => clearTimeout(timer);
+        }
+    }, [countdownValue, showCountdown]);
     const [activeRoutine, setActiveRoutine] = useState(routine);
     const [finishModalVisible, setFinishModalVisible] = useState(false);
     const [finalWorkoutData, setFinalWorkoutData] = useState<WorkoutRoutine | null>(null);
@@ -198,8 +248,86 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
         );
     };
 
+    const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
+            {/* === Countdown Overlay === */}
+            {showCountdown && (
+                <Animated.View
+                    style={{
+                        ...StyleSheet.absoluteFillObject,
+                        zIndex: 999,
+                        backgroundColor: '#0F172A',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: overlayOpacity,
+                    }}
+                >
+                    {/* Pulse rings */}
+                    <View style={{
+                        width: 200,
+                        height: 200,
+                        borderRadius: 100,
+                        borderWidth: 3,
+                        borderColor: colors.primary + '15',
+                        position: 'absolute',
+                    }} />
+                    <View style={{
+                        width: 280,
+                        height: 280,
+                        borderRadius: 140,
+                        borderWidth: 2,
+                        borderColor: colors.primary + '08',
+                        position: 'absolute',
+                    }} />
+
+                    {/* Main countdown circle */}
+                    <Animated.View
+                        style={{
+                            width: 160,
+                            height: 160,
+                            borderRadius: 80,
+                            backgroundColor: colors.primary + '20',
+                            borderWidth: 4,
+                            borderColor: colors.primary,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            transform: [{ scale: countdownScale }],
+                            opacity: countdownOpacity,
+                            shadowColor: colors.primary,
+                            shadowOffset: { width: 0, height: 0 },
+                            shadowOpacity: 0.5,
+                            shadowRadius: 30,
+                            elevation: 20,
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: '#FFFFFF',
+                                fontSize: countdownValue > 0 ? 72 : 36,
+                                fontWeight: '900',
+                                letterSpacing: countdownValue > 0 ? 0 : 2,
+                                textTransform: 'uppercase',
+                            }}
+                        >
+                            {countdownValue > 0 ? countdownValue : t('getReady')}
+                        </Text>
+                    </Animated.View>
+
+                    {/* Routine name below */}
+                    <Text style={{
+                        color: '#94A3B8',
+                        fontSize: 16,
+                        fontWeight: '600',
+                        marginTop: 48,
+                        letterSpacing: 1,
+                        textTransform: 'uppercase',
+                    }}>
+                        {activeRoutine.name}
+                    </Text>
+                </Animated.View>
+            )}
             {/* Header */}
             <View style={{ padding: 20, paddingTop: 60, backgroundColor: colors.card, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>

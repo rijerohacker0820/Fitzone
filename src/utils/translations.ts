@@ -150,6 +150,7 @@ export const translations = {
         weight: 'Weight',
         preferences: 'Preferences',
         bio: 'Bio',
+        getReady: 'Ready!',
     },
     es: {
         home: 'Inicio',
@@ -302,6 +303,7 @@ export const translations = {
         weight: 'Peso',
         preferences: 'Preferencias',
         bio: 'Biografía',
+        getReady: '¡Listo!',
     },
     fr: {
         home: 'Accueil',
@@ -453,5 +455,6 @@ export const translations = {
         weight: 'Poids',
         preferences: 'Préférences',
         bio: 'Bio',
+        getReady: 'Prêt !',
     },
 };
