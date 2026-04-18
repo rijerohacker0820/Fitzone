@@ -159,18 +159,16 @@ export default function ProfileScreen() {
             onPress={onPress}
             activeOpacity={onPress ? 0.7 : 1}
         >
-            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 16 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 12 }}>
                 <View style={[styles.iconContainer, { backgroundColor: (color || colors.primary) + '15' }]}>
                     <Icon size={20} color={color || colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                     <Text style={[styles.settingLabel, { color: colors.text }]} numberOfLines={1}>{label}</Text>
+                    {value && <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }} numberOfLines={1} ellipsizeMode="tail">{value}</Text>}
                 </View>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
-                {value && <Text style={{ color: colors.textSecondary, marginRight: 8, fontSize: 13, fontWeight: '500' }} numberOfLines={1}>{value}</Text>}
-                <ChevronRight size={16} color={colors.textSecondary} />
-            </View>
+            <ChevronRight size={16} color={colors.textSecondary} />
         </TouchableOpacity>
     );
 
@@ -257,17 +255,17 @@ export default function ProfileScreen() {
                             style={[styles.settingItem, { borderBottomColor: colors.background }]}
                             onPress={handleGoalPress}
                         >
-                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 16 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                                 <View style={[styles.iconContainer, { backgroundColor: '#10B98115' }]}>
                                     <Target size={20} color="#10B981" />
                                 </View>
-                                <View style={{ flex: 1 }}>
-                                    <Text style={[styles.settingLabel, { color: colors.text }]} numberOfLines={1}>{t('weeklyGoal')}</Text>
-                                    <Text style={{ fontSize: 12, color: colors.textSecondary }} numberOfLines={1} adjustsFontSizeToFit>{t('goalSubtitle')}</Text>
+                                <View style={{ flexShrink: 1 }}>
+                                    <Text style={[styles.settingLabel, { color: colors.text }]}>{t('weeklyGoal')}</Text>
+                                    <Text style={{ fontSize: 12, color: colors.textSecondary }} numberOfLines={1}>{t('goalSubtitle')}</Text>
                                 </View>
                             </View>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1, maxWidth: '45%' }}>
-                                <Text style={{ color: colors.primary, marginRight: 8, fontSize: 16, fontWeight: 'bold', flexShrink: 1 }} numberOfLines={1} adjustsFontSizeToFit>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Text style={{ color: colors.primary, marginRight: 8, fontSize: 16, fontWeight: 'bold' }} numberOfLines={1}>
                                     {user.weeklyWorkoutGoal || 4} {t('daysPerWeek')}
                                 </Text>
                                 <ChevronRight size={16} color={colors.textSecondary} />

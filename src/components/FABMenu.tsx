@@ -35,8 +35,8 @@ export default function FABMenu({ visible, onClose, onAdd, onBuild, onExisting }
                             }}
                         >
                             <View style={styles.textContainer}>
-                                <Text style={styles.title}>Create Routine</Text>
-                                <Text style={styles.subtitle}>CREATE NEW REUSABLE ROUTINE</Text>
+                                <Text style={styles.title}>Crear Rutina</Text>
+                                <Text style={styles.subtitle}>CREAR NUEVA RUTINA REUTILIZABLE</Text>
                             </View>
                             <View style={[styles.iconContainer, { backgroundColor: '#E0E7FF' }]}>
                                 <Dumbbell size={24} color="#4F46E5" />
@@ -53,8 +53,8 @@ export default function FABMenu({ visible, onClose, onAdd, onBuild, onExisting }
                                 }}
                             >
                                 <View style={styles.textContainer}>
-                                    <Text style={styles.title}>Existing Routine</Text>
-                                    <Text style={styles.subtitle}>START FROM SAVED</Text>
+                                    <Text style={styles.title}>Rutina Existente</Text>
+                                    <Text style={styles.subtitle}>COMENZAR DESDE GUARDADA</Text>
                                 </View>
                                 <View style={[styles.iconContainer, { backgroundColor: '#FEF3C7' }]}>
                                     <Play size={24} color="#F59E0B" fill="#F59E0B" />
@@ -71,7 +71,7 @@ export default function FABMenu({ visible, onClose, onAdd, onBuild, onExisting }
                             }}
                         >
                             <View style={styles.textContainer}>
-                                <Text style={styles.title}>Log Workout</Text>
+                                <Text style={styles.title}>Registrar Entrenamiento</Text>
                                 <Text style={styles.subtitle}>{t('oneOffSessionQuick')}</Text>
                             </View>
                             <View style={[styles.iconContainer, { backgroundColor: '#DCFCE7' }]}>

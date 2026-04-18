@@ -310,7 +310,7 @@ export default function SquadSettingsScreen() {
                         {members.find(m => m.isCurrentUser)?.role === 'Admin' && (
                             <TouchableOpacity onPress={() => setAddMemberModalVisible(true)} style={{ flexDirection: 'row', alignItems: 'center', marginRight: 4 }}>
                                 <UserPlus size={16} color="#2563EB" style={{ marginRight: 4 }} />
-                                <Text style={{ color: '#2563EB', fontWeight: 'bold', fontSize: 13 }}>Add Member</Text>
+                                <Text style={{ color: '#2563EB', fontWeight: 'bold', fontSize: 13 }}>Agregar Miembro</Text>
                             </TouchableOpacity>
                         )}
                     </View>
@@ -365,7 +365,7 @@ export default function SquadSettingsScreen() {
             <Modal visible={addMemberModalVisible} animationType="slide" presentationStyle="pageSheet">
                 <View style={{ flex: 1, backgroundColor: colors.background }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, paddingTop: 60, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
-                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A' }}>Add Member</Text>
+                        <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A' }}>Agregar Miembro</Text>
                         <TouchableOpacity onPress={() => {
                             setAddMemberModalVisible(false);
                             setUserSearchQuery('');
@@ -389,7 +389,7 @@ export default function SquadSettingsScreen() {
                         }}>
                             <Search size={20} color="#94A3B8" style={{ marginRight: 12 }} />
                             <TextInput
-                                placeholder="Search users by name or email..."
+                                placeholder="Buscar usuarios por nombre o correo..."
                                 placeholderTextColor="#94A3B8"
                                 style={{ flex: 1, fontSize: 16, color: colors.text }}
                                 value={userSearchQuery}
@@ -401,7 +401,7 @@ export default function SquadSettingsScreen() {
                         <ScrollView>
                             {isSearching ? (
                                 <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>Searching...</Text>
+                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>Buscando...</Text>
                                 </View>
                             ) : searchResults.length > 0 ? searchResults.map((userRes) => (
                                 <View key={userRes.id} style={{
@@ -436,17 +436,17 @@ export default function SquadSettingsScreen() {
                                         style={{ backgroundColor: '#2563EB', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}
                                     >
                                         <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 14 }}>
-                                            {isAddingUser === userRes.id ? 'Adding...' : 'Add'}
+                                            {isAddingUser === userRes.id ? 'Agregando...' : 'Agregar'}
                                         </Text>
                                     </TouchableOpacity>
                                 </View>
                             )) : userSearchQuery.trim() !== '' ? (
                                 <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>No users found matching "{userSearchQuery}"</Text>
+                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>No se encontraron usuarios para "{userSearchQuery}"</Text>
                                 </View>
                             ) : (
                                 <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>Search for users to add them to your squad.</Text>
+                                    <Text style={{ color: '#94A3B8', fontSize: 16 }}>Busca usuarios para agregarlos a tu grupo.</Text>
                                 </View>
                             )}
                         </ScrollView>

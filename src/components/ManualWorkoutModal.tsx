@@ -248,7 +248,7 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                 <View style={styles.header}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <Image source={LOGO_IMG} style={styles.logo} resizeMode="contain" />
-                        <Text style={styles.headerTitle}>Create Routine</Text>
+                        <Text style={styles.headerTitle}>Crear Rutina</Text>
                     </View>
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <X color="#94A3B8" size={24} />
@@ -263,14 +263,14 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                             onPress={() => setMode('ai')}
                         >
                             <Sparkles size={18} color={mode === 'ai' ? '#3B82F6' : '#94A3B8'} />
-                            <Text style={[styles.toggleText, mode === 'ai' && styles.activeToggleText]}>Ask the AI Coach</Text>
+                            <Text style={[styles.toggleText, mode === 'ai' && styles.activeToggleText]}>Preguntar a IA</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={[styles.toggleButton, mode === 'manual' && styles.activeToggleManual]}
                             onPress={() => setMode('manual')}
                         >
                             <PenTool size={18} color={mode === 'manual' ? '#FFFFFF' : '#94A3B8'} />
-                            <Text style={[styles.toggleText, mode === 'manual' && styles.activeToggleTextManual]}>Manual Build</Text>
+                            <Text style={[styles.toggleText, mode === 'manual' && styles.activeToggleTextManual]}>Creación Manual</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -278,10 +278,10 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                         <View style={styles.aiCard}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 20 }}>
                                 <Sparkles size={24} color="#3B82F6" style={{ marginRight: 10 }} />
-                                <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A' }}>Ask the AI Coach</Text>
+                                <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A' }}>Preguntar a IA</Text>
                             </View>
 
-                            <Text style={styles.inputLabel}>Your Goal</Text>
+                            <Text style={styles.inputLabel}>Tu Objetivo</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. Build massive chest"
@@ -292,14 +292,14 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
 
                             <View style={{ flexDirection: 'row', gap: 16 }}>
                                 <View style={{ flex: 1 }}>
-                                    <Text style={styles.inputLabel}>Experience</Text>
+                                    <Text style={styles.inputLabel}>Experiencia</Text>
                                     <TouchableOpacity style={styles.pseudoPicker} onPress={showExperienceSelector}>
                                         <Text style={styles.pseudoPickerText}>{experience}</Text>
                                         <Plus size={16} color="#0F172A" style={{ transform: [{ rotate: '45deg' }] }} />
                                     </TouchableOpacity>
                                 </View>
                                 <View style={{ flex: 1 }}>
-                                    <Text style={styles.inputLabel}>Equipment</Text>
+                                    <Text style={styles.inputLabel}>Equipamiento</Text>
                                     <TouchableOpacity style={styles.pseudoPicker} onPress={showEquipmentSelector}>
                                         <Text style={styles.pseudoPickerText}>{equipment}</Text>
                                         <Plus size={16} color="#0F172A" style={{ transform: [{ rotate: '45deg' }] }} />
@@ -321,7 +321,7 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                     ) : (
                         <>
                             {/* Routine Name */}
-                            <Text style={styles.inputLabel}>Routine Name</Text>
+                            <Text style={styles.inputLabel}>Nombre de la Rutina</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="e.g. Monday Chest Day"
@@ -331,7 +331,7 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                             />
 
                             {/* Description */}
-                            <Text style={styles.inputLabel}>Description</Text>
+                            <Text style={styles.inputLabel}>Descripción</Text>
                             <TextInput
                                 style={[styles.input, styles.textArea]}
                                 placeholder="Brief description..."
@@ -343,7 +343,7 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                             />
 
                             {/* Tags */}
-                            <Text style={styles.inputLabel}>Tags</Text>
+                            <Text style={styles.inputLabel}>Etiquetas</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Comma separated"
@@ -353,7 +353,7 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                             />
 
                             {/* Quick Add Exercises */}
-                            <Text style={styles.inputLabel}>Quick Add Exercises</Text>
+                            <Text style={styles.inputLabel}>Agregar Ejercicios Rápidos</Text>
                             <View style={styles.chipContainer}>
                                 {QUICK_EXERCISES.map((ex) => (
                                     <TouchableOpacity
@@ -436,7 +436,7 @@ export default function ManualWorkoutModal({ visible, onClose, onRoutineCreated,
                         ) : (
                             <TouchableOpacity style={[styles.primaryButton, { flex: initialRoutine ? 2 : 1 }]} onPress={handleSave}>
                                 <Save color="#FFF" size={20} style={{ marginRight: 8 }} />
-                                <Text style={styles.primaryButtonText}>Save Routine</Text>
+                                <Text style={styles.primaryButtonText}>Guardar Rutina</Text>
                             </TouchableOpacity>
                         )}
                     </View>

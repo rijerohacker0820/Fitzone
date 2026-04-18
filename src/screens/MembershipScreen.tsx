@@ -38,7 +38,7 @@ export default function MembershipScreen() {
 
     const safeAlert = (title: string, msg: string) => {
         if (Platform.OS === 'web') {
-            window.alert(`${title}\n\n${msg}`);
+            (globalThis as any).alert(`${title}\n\n${msg}`);
         } else {
             Alert.alert(title, msg);
         }
@@ -119,7 +119,7 @@ export default function MembershipScreen() {
             ) : (
                 plans.map(plan => {
                     // Normalize comparison just in case
-                    const isCurrentPlan = user?.planId?.toLowerCase() === plan.id.toLowerCase();
+                    const isCurrentPlan = (user as any)?.planId?.toLowerCase() === plan.id.toLowerCase();
 
                     return (
                         <View 
@@ -213,7 +213,7 @@ export default function MembershipScreen() {
                             <Text style={{ fontSize: 28, fontWeight: 'bold', color: colors.primary }}>
                                 Bs. {confirmingPlan ? (confirmingPlan.price * (gymData?.exchangeRate || 40)).toFixed(2) : '0.00'}
                             </Text>
-                            <Text style={{ fontSize: 12, color: '#94A3B8', mt: 2 }}>Tasa del día: {gymData?.exchangeRate || 40} Bs/$</Text>
+                            <Text style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>Tasa del día: {gymData?.exchangeRate || 40} Bs/$</Text>
                         </View>
 
                         <ScrollView style={{ maxHeight: 350, width: '100%', paddingRight: 5 }}>

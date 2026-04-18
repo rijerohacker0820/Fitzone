@@ -59,7 +59,7 @@ export default function SelectRoutineModal({ visible, onClose, onRoutineSelected
             <View style={{ flex: 1, backgroundColor: colors.background, padding: 20 }}>
                 {/* Header */}
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, marginTop: 20 }}>
-                    <Text style={{ color: colors.text, fontSize: 24, fontWeight: 'bold' }}>Select Routine</Text>
+                    <Text style={{ color: colors.text, fontSize: 24, fontWeight: 'bold' }}>Seleccionar Rutina</Text>
                     <TouchableOpacity onPress={onClose} style={{ padding: 8 }}>
                         <X color={colors.textSecondary} size={24} />
                     </TouchableOpacity>

@@ -20,7 +20,7 @@ export default function SetRepSelectionModal({
     exerciseName,
     initialSets = 3,
     initialReps = 10,
-    confirmButtonText = "Add to Workout"
+    confirmButtonText = "Agregar al Entrenamiento"
 }: Props) {
     const { colors } = useTheme();
     const [sets, setSets] = useState(initialSets);
@@ -55,12 +55,12 @@ export default function SetRepSelectionModal({
                             </TouchableOpacity>
                         </View>
 
-                        <Text style={styles.subtitle}>Set initial sets and reps</Text>
+                        <Text style={styles.subtitle}>Establecer series y repeticiones iniciales</Text>
 
                         {/* Sets Selector */}
                         <View style={styles.selectorRow}>
                             <View style={styles.labelCol}>
-                                <Text style={styles.label}>Sets</Text>
+                                <Text style={styles.label}>Series</Text>
                             </View>
                             <View style={styles.controlCol}>
                                 <TouchableOpacity
@@ -87,7 +87,7 @@ export default function SetRepSelectionModal({
                         {/* Reps Selector */}
                         <View style={styles.selectorRow}>
                             <View style={styles.labelCol}>
-                                <Text style={styles.label}>Reps</Text>
+                                <Text style={styles.label}>Repeticiones</Text>
                             </View>
                             <View style={styles.controlCol}>
                                 <TouchableOpacity

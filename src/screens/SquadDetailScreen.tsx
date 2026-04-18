@@ -115,7 +115,7 @@ export default function SquadDetailScreen() {
                 const data = await getGroupMembers(squadId);
                 const mapped: SquadMember[] = data.map((m: any, index: number) => ({
                     id: m.id,
-                    name: m.name || 'Unknown',
+                    name: m.name || 'Desconocido',
                     avatarColor: AVATAR_COLORS[index % AVATAR_COLORS.length],
                     sessionsCompleted: m.weeklyWorkouts || 0,
                     sessionsTarget: m.weeklyGoal || 4, // From weekly plan, default 4
@@ -865,7 +865,7 @@ export default function SquadDetailScreen() {
                             <TextInput
                                 value={tempSquadName}
                                 onChangeText={setTempSquadName}
-                                placeholder="Enter squad name"
+                                placeholder="Ingresar nombre del grupo"
                                 style={{
                                     backgroundColor: '#F8FAFC',
                                     borderRadius: 12,
@@ -892,7 +892,7 @@ export default function SquadDetailScreen() {
                                 elevation: 4
                             }}
                         >
-                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Save Changes</Text>
+                            <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>Guardar Cambios</Text>
                         </TouchableOpacity>
                     </View>
                 </View>

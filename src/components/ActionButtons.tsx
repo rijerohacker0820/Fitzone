@@ -36,7 +36,7 @@ export default function ActionButtons({ onLogPress, onSchedulePress }: Props) {
                 }}>
                     <Calendar size={20} color={colors.textSecondary} />
                 </View>
-                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>View Schedule</Text>
+                <Text style={{ color: colors.text, fontWeight: '600', fontSize: 14 }}>Ver Horario</Text>
             </TouchableOpacity>
 
             {/* Log Workout Button */}
@@ -60,7 +60,7 @@ export default function ActionButtons({ onLogPress, onSchedulePress }: Props) {
                 }}>
                     <Plus size={20} color="#FFFFFF" strokeWidth={3} />
                 </View>
-                <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 }}>Log Workout</Text>
+                <Text style={{ color: '#FFFFFF', fontWeight: 'bold', fontSize: 19, textAlign: 'center' }} numberOfLines={1} adjustsFontSizeToFit>Registrar Entreno</Text>
             </TouchableOpacity>
         </View>
     );

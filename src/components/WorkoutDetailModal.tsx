@@ -53,7 +53,7 @@ export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, 
                 <View style={styles.header}>
                     <View style={{ flex: 1 }}>
                         <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-                            {workout.status === 'completed' ? 'Workout Summary' : 'Routine Details'}
+                            {workout.status === 'completed' ? 'Resumen del Entrenamiento' : 'Detalles de la Rutina'}
                         </Text>
                         <Text style={[styles.headerTitle, { color: colors.text }]}>{workout.name}</Text>
                     </View>
@@ -109,7 +109,7 @@ export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, 
                             <View style={[styles.notesContainer, { backgroundColor: colors.card, borderColor: '#F1F5F9' }]}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                                     <MessageSquare size={16} color={colors.primary} style={{ marginRight: 8 }} />
-                                    <Text style={{ fontWeight: 'bold', color: colors.text }}>Notes</Text>
+                                    <Text style={{ fontWeight: 'bold', color: colors.text }}>Notas</Text>
                                 </View>
                                 <Text style={{ color: colors.textSecondary, fontSize: 14, lineHeight: 20 }}>
                                     {workout.notes}
@@ -128,18 +128,18 @@ export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, 
                         <View style={[styles.statsRow, { backgroundColor: colors.card, borderColor: '#F1F5F9' }]}>
                             <View style={styles.statItem}>
                                 <Text style={[styles.statValue, { color: colors.primary }]}>{stats.completed}/{stats.total}</Text>
-                                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Sets Done</Text>
+                                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Series Hechas</Text>
                             </View>
                             <View style={[styles.divider, { backgroundColor: '#F1F5F9' }]} />
                             <View style={styles.statItem}>
                                 <Text style={[styles.statValue, { color: colors.primary }]}>{stats.percent}%</Text>
-                                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Completion</Text>
+                                <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Completado</Text>
                             </View>
                         </View>
                     )}
 
                     {/* Exercises */}
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Exercises</Text>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Ejercicios</Text>
                     {workout.exercises.map((exercise, idx) => (
                         <View key={exercise.id} style={[styles.exerciseCard, { backgroundColor: colors.card }]}>
                             <View style={styles.exerciseHeader}>
@@ -151,7 +151,7 @@ export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, 
 
                             {exercise.sets.map((set, sIdx) => (
                                 <View key={set.id} style={styles.setRow}>
-                                    <Text style={[styles.setText, { color: colors.textSecondary }]}>Set {sIdx + 1}</Text>
+                                    <Text style={[styles.setText, { color: colors.textSecondary }]}>Serie {sIdx + 1}</Text>
                                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                         <Text style={[styles.setData, { color: colors.text }]}>{set.reps} reps</Text>
                                         <Text style={{ color: colors.textSecondary, marginHorizontal: 8 }}>x</Text>
@@ -177,7 +177,7 @@ export default function WorkoutDetailModal({ visible, onClose, workout, onEdit, 
                             style={[styles.doAgainButton, { backgroundColor: colors.primary }]}
                         >
                             <Dumbbell size={20} color={colors.background} />
-                            <Text style={[styles.doAgainButtonText, { color: colors.background }]}>Do it again</Text>
+                            <Text style={[styles.doAgainButtonText, { color: colors.background }]}>Hacerlo de nuevo</Text>
                             <ChevronRight size={20} color={colors.background} />
                         </TouchableOpacity>
                     )}

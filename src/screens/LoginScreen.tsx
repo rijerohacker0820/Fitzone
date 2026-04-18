@@ -41,15 +41,15 @@ export default function LoginScreen() {
         <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, padding: 20, justifyContent: 'center' }}>
             <View style={{ marginBottom: 40 }}>
                 <Text style={{ fontSize: 32, fontWeight: 'bold', color: colors.text, marginBottom: 10 }}>
-                    Welcome Back
+                    Bienvenido de nuevo
                 </Text>
                 <Text style={{ fontSize: 16, color: colors.textSecondary }}>
-                    Sign in to continue
+                    Inicia sesión para continuar
                 </Text>
             </View>
 
             <View style={{ marginBottom: 20 }}>
-                <Text style={{ color: colors.text, marginBottom: 5 }}>Email</Text>
+                <Text style={{ color: colors.text, marginBottom: 5 }}>Correo</Text>
                 <TextInput
                     style={{
                         backgroundColor: colors.card,
@@ -59,7 +59,7 @@ export default function LoginScreen() {
                         borderWidth: 1,
                         borderColor: colors.secondary
                     }}
-                    placeholder="Enter your email"
+                    placeholder="Ingresa tu correo"
                     placeholderTextColor={colors.textSecondary}
                     value={email}
                     onChangeText={setEmail}
@@ -69,7 +69,7 @@ export default function LoginScreen() {
             </View>
 
             <View style={{ marginBottom: 30 }}>
-                <Text style={{ color: colors.text, marginBottom: 5 }}>Password</Text>
+                <Text style={{ color: colors.text, marginBottom: 5 }}>Contraseña</Text>
                 <TextInput
                     style={{
                         backgroundColor: colors.card,
@@ -79,7 +79,7 @@ export default function LoginScreen() {
                         borderWidth: 1,
                         borderColor: colors.secondary
                     }}
-                    placeholder="Enter your password"
+                    placeholder="Ingresa tu contraseña"
                     placeholderTextColor={colors.textSecondary}
                     value={password}
                     onChangeText={setPassword}
@@ -105,7 +105,7 @@ export default function LoginScreen() {
                     <ActivityIndicator color="#FFF" />
                 ) : (
                     <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold' }}>
-                        Login
+                        Entrar
                     </Text>
                 )}
             </TouchableOpacity>

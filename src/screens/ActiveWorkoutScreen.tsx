@@ -336,7 +336,7 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
                     </TouchableOpacity>
                     <View style={{ flex: 1 }}>
                         <Text style={{ color: colors.textSecondary, fontSize: 14 }}>{t('activeSession')}</Text>
-                        <Text style={{ color: colors.text, fontSize: 24, fontWeight: 'bold' }} numberOfLines={1}>{activeRoutine.name}</Text>
+                        <Text style={{ color: colors.text, fontSize: 22, fontWeight: 'bold' }} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.7}>{activeRoutine.name}</Text>
                     </View>
                 </View>
 
@@ -468,27 +468,28 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    minHeight: 80,
                     shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 4 },
+                    shadowOffset: { width: 0, height: -4 },
                     shadowOpacity: 0.1,
                     shadowRadius: 10,
                     elevation: 5
                 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <View style={{
-                            width: 48,
-                            height: 48,
-                            borderRadius: 24,
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
                             backgroundColor: '#EFF6FF',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            marginRight: 16
+                            marginRight: 10
                         }}>
-                            <Timer size={24} color="#3B82F6" />
+                            <Timer size={20} color="#3B82F6" />
                         </View>
                         <View>
-                            <Text style={{ fontSize: 12, fontWeight: 'bold', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('sessionTime').toUpperCase()}</Text>
-                            <Text style={{ fontSize: 24, fontWeight: 'bold', color: '#0F172A', fontVariant: ['tabular-nums'] }}>
+                            <Text style={{ fontSize: 7, fontWeight: 'bold', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5 }}>{t('sessionTime').toUpperCase()}</Text>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A', fontVariant: ['tabular-nums'] }}>
                                 {formatTime(elapsed)}
                             </Text>
                         </View>

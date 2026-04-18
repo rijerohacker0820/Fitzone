@@ -174,7 +174,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                         {/* Progress */}
                         <View style={{ marginBottom: 24 }}>
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 }}>
-                                <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '600' }}>Progress</Text>
+                                <Text style={{ color: colors.textSecondary, fontSize: 14, fontWeight: '600' }}>Progreso</Text>
                                 <Text style={{ color: colors.primary, fontSize: 14, fontWeight: 'bold' }}>{progress}%</Text>
                             </View>
                             <View style={{ height: 8, backgroundColor: '#E2E8F0', borderRadius: 4 }}>
@@ -284,12 +284,12 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                             }}
                         >
                             <Plus size={24} color="#94A3B8" style={{ marginRight: 8 }} />
-                            <Text style={{ color: '#94A3B8', fontSize: 18, fontWeight: '600' }}>Add Exercise</Text>
+                            <Text style={{ color: '#94A3B8', fontSize: 18, fontWeight: '600' }}>Agregar Ejercicio</Text>
                         </TouchableOpacity>
 
                         {/* Session Details Card */}
                         <View style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2, marginBottom: 20 }}>
-                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1E293B', marginBottom: 16 }}>Session Details</Text>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1E293B', marginBottom: 16 }}>Detalles de la Sesión</Text>
 
                             {/* Date Selector */}
                             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -327,7 +327,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                             </View>
 
                             {/* Sensation Selector */}
-                            <Text style={{ fontSize: 14, color: '#64748B', marginBottom: 12 }}>How did it feel?</Text>
+                            <Text style={{ fontSize: 14, color: '#64748B', marginBottom: 12 }}>¿Cómo te sentiste?</Text>
                             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                 <View style={{ flexDirection: 'row', gap: 8 }}>
                                     {SENSATIONS.map((s) => (
@@ -362,7 +362,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                             }}
                         >
                             <Star size={20} color={saveAsRoutine ? colors.primary : colors.textSecondary} fill={saveAsRoutine ? colors.primary : 'transparent'} />
-                            <Text style={{ marginLeft: 10, color: saveAsRoutine ? colors.primary : colors.text, fontWeight: '600' }}>Save as Routine</Text>
+                            <Text style={{ marginLeft: 10, color: saveAsRoutine ? colors.primary : colors.text, fontWeight: '600' }}>Guardar como Rutina</Text>
                         </TouchableOpacity>
 
                     </ScrollView>
@@ -380,7 +380,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                                 shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5
                             }}
                         >
-                            <Text style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>Complete Workout</Text>
+                            <Text style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>Completar Entrenamiento</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -397,7 +397,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                 <Modal visible={showDatePicker} transparent animationType="fade">
                     <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
                         <View style={{ backgroundColor: '#FFF', borderRadius: 24, padding: 24, width: '85%', maxWidth: 400 }}>
-                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A', marginBottom: 20, textAlign: 'center' }}>Select Date</Text>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#0F172A', marginBottom: 20, textAlign: 'center' }}>Seleccionar Fecha</Text>
 
                             <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 30 }}>
                                 {/* Day Selector */}
@@ -483,7 +483,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                                 onPress={() => setShowDatePicker(false)}
                                 style={{ backgroundColor: colors.primary, paddingVertical: 16, borderRadius: 12, alignItems: 'center' }}
                             >
-                                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold' }}>Confirm</Text>
+                                <Text style={{ color: '#FFF', fontSize: 16, fontWeight: 'bold' }}>Confirmar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

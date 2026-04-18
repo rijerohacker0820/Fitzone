@@ -81,23 +81,23 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                     style={{ width: '100%', alignItems: 'center' }}
                 >
                     <View style={[styles.content, { backgroundColor: colors.card }]}>
-                        <Text style={[styles.title, { color: colors.text }]}>Finish Workout</Text>
-                        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>How do you feel after this session?</Text>
+                        <Text style={[styles.title, { color: colors.text }]}>Finalizar entrenamiento</Text>
+                        <Text style={[styles.subtitle, { color: colors.textSecondary }]}>¿Cómo te sentiste después de esta sesión?</Text>
 
                         <View style={styles.sensationContainer}>
                             <View style={styles.sensationRow}>
-                                <SensationButton type="Great" icon={Trophy} label="Great" />
-                                <SensationButton type="Good" icon={Smile} label="Good" />
+                                <SensationButton type="Great" icon={Trophy} label="Genial" />
+                                <SensationButton type="Good" icon={Smile} label="Bien" />
                                 <SensationButton type="Neutral" icon={Meh} label="Neutral" />
-                                <SensationButton type="Hard" icon={Activity} label="Hard" />
-                                <SensationButton type="Exhausted" icon={Coffee} label="Exhausted" />
+                                <SensationButton type="Hard" icon={Activity} label="Cansado" />
+                                <SensationButton type="Exhausted" icon={Coffee} label="Exhausto" />
                             </View>
                         </View>
 
-                        <Text style={[styles.label, { color: colors.textSecondary }]}>Notes (Optional)</Text>
+                        <Text style={[styles.label, { color: colors.textSecondary }]}>Notas (Opcional)</Text>
                         <TextInput
                             style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: '#E2E8F0' }]}
-                            placeholder="How did it go? Any pains or highlights?"
+                            placeholder="¿Cómo te sentiste?"
                             placeholderTextColor={colors.textSecondary}
                             multiline
                             numberOfLines={4}
@@ -105,7 +105,7 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                             onChangeText={setNotes}
                         />
 
-                        <Text style={[styles.label, { color: colors.textSecondary }]}>Add Photo (Optional)</Text>
+                        <Text style={[styles.label, { color: colors.textSecondary }]}>Foto (Opcional)</Text>
                         {imageUri ? (
                             <View style={styles.imagePreviewContainer}>
                                 <Image source={{ uri: imageUri }} style={styles.previewImage} />
@@ -123,28 +123,28 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                                     style={[styles.photoButton, { backgroundColor: colors.background, borderColor: '#E2E8F0' }]}
                                 >
                                     <Camera size={24} color={colors.primary} />
-                                    <Text style={[styles.photoButtonText, { color: colors.text }]}>Take Photo</Text>
+                                    <Text style={[styles.photoButtonText, { color: colors.text }]}>Foto</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={pickImage}
                                     style={[styles.photoButton, { backgroundColor: colors.background, borderColor: '#E2E8F0' }]}
                                 >
                                     <ImageIcon size={24} color={colors.primary} />
-                                    <Text style={[styles.photoButtonText, { color: colors.text }]}>Library</Text>
+                                    <Text style={[styles.photoButtonText, { color: colors.text }]}>Librería</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
 
                         <View style={styles.footer}>
                             <TouchableOpacity onPress={onClose} style={styles.skipButton}>
-                                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Cancel</Text>
+                                <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Cancelar</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={handleSave}
                                 style={[styles.saveButton, { backgroundColor: colors.primary }]}
                             >
-                                <Check color={colors.background} size={20} />
-                                <Text style={[styles.saveButtonText, { color: colors.background }]}>Save Workout</Text>
+                                <Check color={colors.background} size={18} />
+                                <Text style={[styles.saveButtonText, { color: colors.background }]}>Guardar</Text>
                             </TouchableOpacity>
                         </View>
                     </View>

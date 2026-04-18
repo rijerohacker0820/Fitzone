@@ -35,14 +35,14 @@ export default function WorkoutAIModal({ visible, onClose, onRoutineGenerated }:
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
                         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                             <Sparkles color={colors.primary} size={24} />
-                            <Text style={{ color: colors.text, fontSize: 20, fontWeight: 'bold', marginLeft: 8 }}>AI Coach</Text>
+                            <Text style={{ color: colors.text, fontSize: 20, fontWeight: 'bold', marginLeft: 8 }}>Coach IA</Text>
                         </View>
                         <TouchableOpacity onPress={onClose}>
                             <X color={colors.textSecondary} size={24} />
                         </TouchableOpacity>
                     </View>
 
-                    <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Goal</Text>
+                    <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Objetivo</Text>
                     <TextInput
                         style={{ backgroundColor: colors.background, color: colors.text, padding: 16, borderRadius: 12, marginBottom: 16 }}
                         placeholder="e.g. Build chest size, Increase stamina"
@@ -51,14 +51,14 @@ export default function WorkoutAIModal({ visible, onClose, onRoutineGenerated }:
                         onChangeText={setGoal}
                     />
 
-                    <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Equipment</Text>
+                    <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Equipamiento</Text>
                     <TextInput
                         style={{ backgroundColor: colors.background, color: colors.text, padding: 16, borderRadius: 12, marginBottom: 16 }}
                         value={equipment}
                         onChangeText={setEquipment}
                     />
 
-                    <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Level</Text>
+                    <Text style={{ color: colors.textSecondary, marginBottom: 8 }}>Nivel</Text>
                     {/* Simple selector for level could go here, for now TextInput */}
                     <TextInput
                         style={{ backgroundColor: colors.background, color: colors.text, padding: 16, borderRadius: 12, marginBottom: 24 }}
@@ -72,7 +72,7 @@ export default function WorkoutAIModal({ visible, onClose, onRoutineGenerated }:
                         style={{ backgroundColor: colors.primary, padding: 16, borderRadius: 16, alignItems: 'center' }}
                     >
                         {loading ? <ActivityIndicator color={colors.background} /> : (
-                            <Text style={{ color: colors.background, fontWeight: 'bold', fontSize: 16 }}>Generate Routine</Text>
+                            <Text style={{ color: colors.background, fontWeight: 'bold', fontSize: 16 }}>Generar Rutina</Text>
                         )}
                     </TouchableOpacity>
                 </View>
