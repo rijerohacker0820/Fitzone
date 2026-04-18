@@ -213,13 +213,14 @@ export default function HomeScreen() {
                                 alignItems: 'center'
                             }}
                         >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, marginRight: 8 }}>
                                 <View style={{
                                     width: 40, height: 40,
                                     borderRadius: 12,
                                     backgroundColor: colors.primary + '20', // reduced opacity
                                     justifyContent: 'center', alignItems: 'center',
-                                    marginRight: 12
+                                    marginRight: 12,
+                                    flexShrink: 0
                                 }}>
                                     {log.tags && log.tags.includes('Quick Workout') ? (
                                         <Zap size={20} color={colors.primary} />
@@ -227,14 +228,14 @@ export default function HomeScreen() {
                                         <Dumbbell size={20} color={colors.primary} />
                                     )}
                                 </View>
-                                <View>
-                                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold' }}>{log.name}</Text>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ color: colors.text, fontSize: 16, fontWeight: 'bold' }} numberOfLines={1}>{log.name}</Text>
                                     <Text style={{ color: colors.textSecondary, fontSize: 12 }}>
                                         {new Date(log.date).toLocaleDateString()} • {Math.floor(log.duration / 60)} min
                                     </Text>
                                 </View>
                             </View>
-                            <View style={{ backgroundColor: '#F0FFF4', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 }}>
+                            <View style={{ backgroundColor: '#F0FFF4', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, flexShrink: 0 }}>
                                 <Text style={{ color: '#16A34A', fontSize: 12, fontWeight: 'bold' }}>{t('done')}</Text>
                             </View>
                         </TouchableOpacity>
