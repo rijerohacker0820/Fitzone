@@ -178,7 +178,7 @@ export default function SquadSettingsScreen() {
             }
 
             const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                mediaTypes: ['images'],
                 allowsEditing: true,
                 aspect: [1, 1],
                 quality: 0.5,
@@ -337,11 +337,11 @@ export default function SquadSettingsScreen() {
                                     </View>
                                     {member.isCurrentUser ? (
                                         <Text style={{ color: '#94A3B8', fontSize: 12 }}>{t('owner')}</Text>
-                                    ) : (
+                                    ) : members.find(m => m.isCurrentUser)?.role === 'Admin' ? (
                                         <TouchableOpacity>
                                             <Trash2 size={18} color="#EF4444" />
                                         </TouchableOpacity>
-                                    )}
+                                    ) : null}
                                 </View>
                                 {index < members.length - 1 && <View style={styles.separator} />}
                             </View>

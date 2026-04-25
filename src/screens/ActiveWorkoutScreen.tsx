@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Alert, Animated, Dimensions, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert, Animated, Dimensions, StyleSheet, Platform, TextInput } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { WorkoutRoutine, WorkoutSet } from '../types';
@@ -9,6 +9,7 @@ import { customAlert } from '../utils/alert';
 import FinishWorkoutModal from '../components/FinishWorkoutModal';
 import ExerciseSearchModal from '../components/ExerciseSearchModal';
 import * as Crypto from 'expo-crypto';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Exercise } from '../types';
 
 import { useLanguage } from '../context/LanguageContext';
@@ -35,6 +36,7 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
 
     const [elapsed, setElapsed] = useState(0);
     const [isRunning, setIsRunning] = useState(false);
+    const [restTimeLeft, setRestTimeLeft] = useState<number | null>(null);
 
     // --- Countdown State ---
     const [showCountdown, setShowCountdown] = useState(true);
@@ -42,6 +44,8 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
     const countdownScale = useRef(new Animated.Value(0.3)).current;
     const countdownOpacity = useRef(new Animated.Value(0)).current;
     const overlayOpacity = useRef(new Animated.Value(1)).current;
+
+    const useNative = Platform.OS !== 'web';
 
     const animateCountdownTick = useCallback(() => {
         countdownScale.setValue(0.3);
@@ -51,12 +55,12 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
                 toValue: 1,
                 friction: 4,
                 tension: 60,
-                useNativeDriver: true,
+                useNativeDriver: useNative,
             }),
             Animated.timing(countdownOpacity, {
                 toValue: 1,
                 duration: 200,
-                useNativeDriver: true,
+                useNativeDriver: useNative,
             }),
         ]).start();
     }, [countdownScale, countdownOpacity]);
@@ -76,7 +80,7 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
                 Animated.timing(overlayOpacity, {
                     toValue: 0,
                     duration: 400,
-                    useNativeDriver: true,
+                    useNativeDriver: useNative,
                 }).start(() => {
                     setShowCountdown(false);
                     setIsRunning(true);
@@ -124,6 +128,18 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
         return () => clearInterval(interval);
     }, [isRunning]);
 
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+        if (restTimeLeft !== null && restTimeLeft > 0) {
+            interval = setInterval(() => {
+                setRestTimeLeft(prev => (prev && prev > 0 ? prev - 1 : null));
+            }, 1000);
+        } else if (restTimeLeft === 0) {
+            setRestTimeLeft(null); // auto hide
+        }
+        return () => clearInterval(interval);
+    }, [restTimeLeft]);
+
     const formatTime = (sec: number) => {
         const m = Math.floor(sec / 60);
         const s = sec % 60;
@@ -148,6 +164,34 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
             })
         };
 
+        setActiveRoutine(updated);
+
+        // Start rest timer if completed
+        if (status === 'completed' || status === 'partial') {
+            setRestTimeLeft(activeRoutine.restSeconds || 60);
+        }
+    };
+
+    const updateSetDetails = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight', value: string) => {
+        const numValue = parseInt(value, 10);
+        const finalValue = isNaN(numValue) ? 0 : numValue;
+        
+        const updated = {
+            ...activeRoutine,
+            exercises: activeRoutine.exercises.map((ex, exIdx) => {
+                if (exIdx !== exerciseIndex) return ex;
+                return {
+                    ...ex,
+                    sets: ex.sets.map((s, sIdx) => {
+                        if (sIdx !== setIndex) return s;
+                        return {
+                            ...s,
+                            [field]: finalValue
+                        };
+                    })
+                };
+            })
+        };
         setActiveRoutine(updated);
     };
 
@@ -340,11 +384,15 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
                     </View>
                 </View>
 
-                <TouchableOpacity
-                    onPress={handleFinish}
-                    style={{ backgroundColor: colors.primary + '20', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 }}
-                >
-                    <Text style={{ color: colors.primary, fontWeight: 'bold' }}>{t('finish')}</Text>
+                <TouchableOpacity onPress={handleFinish}>
+                    <LinearGradient
+                        colors={['#F97316', '#EA580C']} // primary orange gradient
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 1 }}
+                        style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 14 }}
+                    >
+                        <Text style={{ color: '#FFF', fontWeight: 'bold' }}>{t('finish')}</Text>
+                    </LinearGradient>
                 </TouchableOpacity>
             </View>
 
@@ -381,16 +429,38 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
                                     justifyContent: 'space-between',
                                     alignItems: 'center',
                                     backgroundColor: colors.card,
-                                    padding: 12,
-                                    borderRadius: 16,
-                                    marginBottom: 8,
-                                    borderWidth: 1,
-                                    borderColor: '#F1F5F9'
+                                    padding: 16,
+                                    borderRadius: 20,
+                                    marginBottom: 12,
+                                    borderWidth: 0,
+                                    ...Platform.select({
+                                        web: { boxShadow: '0 4px 20px rgba(0,0,0,0.08)' } as any,
+                                        default: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 }
+                                    })
                                 }}
                             >
-                                <View>
-                                    <Text style={{ color: colors.textSecondary, fontWeight: 'bold' }}>{t('set')} {setIdx + 1}</Text>
-                                    <Text style={{ color: colors.text }}>{set.reps} {t('reps').toLowerCase()} x {set.weight}kg</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                    <Text style={{ color: colors.textSecondary, fontWeight: 'bold', width: 60 }}>{t('set')} {setIdx + 1}</Text>
+                                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.background, borderRadius: 8, paddingHorizontal: 8, marginLeft: 10 }}>
+                                        <TextInput
+                                            style={{ color: colors.text, fontSize: 20, fontWeight: '700', minWidth: 40, textAlign: 'center', paddingVertical: 8 }}
+                                            keyboardType="numeric"
+                                            value={set.reps === 0 ? '' : set.reps.toString()}
+                                            onChangeText={(val) => updateSetDetails(exIdx, setIdx, 'reps', val)}
+                                            placeholder="0"
+                                            placeholderTextColor="#94A3B8"
+                                        />
+                                        <Text style={{ color: colors.textSecondary, fontSize: 14 }}> {t('reps').toLowerCase()} × </Text>
+                                        <TextInput
+                                            style={{ color: colors.text, fontSize: 20, fontWeight: '700', minWidth: 50, textAlign: 'center', paddingVertical: 8 }}
+                                            keyboardType="numeric"
+                                            value={set.weight === 0 ? '' : set.weight.toString()}
+                                            onChangeText={(val) => updateSetDetails(exIdx, setIdx, 'weight', val)}
+                                            placeholder="0"
+                                            placeholderTextColor="#94A3B8"
+                                        />
+                                        <Text style={{ color: colors.textSecondary, fontSize: 14 }}> kg</Text>
+                                    </View>
                                 </View>
 
                                 <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -495,32 +565,87 @@ export default function ActiveWorkoutScreen({ routine: propRoutine, onFinish: pr
                         </View>
                     </View>
 
-                    <TouchableOpacity
-                        onPress={() => setIsRunning(!isRunning)}
-                        style={{
-                            backgroundColor: '#2563EB',
-                            paddingHorizontal: 20,
-                            paddingVertical: 12,
-                            borderRadius: 16,
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            minWidth: 110,
-                            justifyContent: 'center'
-                        }}
-                    >
-                        {isRunning ? (
-                            <>
-                                <Pause size={18} color="#FFF" fill="#FFF" style={{ marginRight: 8 }} />
-                                <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>{t('pause')}</Text>
-                            </>
-                        ) : (
-                            <>
-                                <Play size={18} color="#FFF" fill="#FFF" style={{ marginRight: 8 }} />
-                                <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>{t('resume')}</Text>
-                            </>
-                        )}
+                    <TouchableOpacity onPress={() => setIsRunning(!isRunning)}>
+                        <LinearGradient
+                            colors={['#2563EB', '#1D4ED8']} // primary blue gradient
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={{
+                                paddingHorizontal: 20,
+                                paddingVertical: 12,
+                                borderRadius: 14,
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                minWidth: 110,
+                                justifyContent: 'center'
+                            }}
+                        >
+                            {isRunning ? (
+                                <>
+                                    <Pause size={18} color="#FFF" fill="#FFF" style={{ marginRight: 8 }} />
+                                    <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>{t('pause')}</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <Play size={18} color="#FFF" fill="#FFF" style={{ marginRight: 8 }} />
+                                    <Text style={{ color: '#FFF', fontWeight: 'bold', fontSize: 16 }}>{t('resume')}</Text>
+                                </>
+                            )}
+                        </LinearGradient>
                     </TouchableOpacity>
                 </View>
+
+                {/* Rest Timer Overlay */}
+                {restTimeLeft !== null && (
+                    <View style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        backgroundColor: '#1E293B',
+                        borderRadius: 24,
+                        padding: 16,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        minHeight: 80,
+                        shadowColor: colors.primary,
+                        shadowOffset: { width: 0, height: -4 },
+                        shadowOpacity: 0.3,
+                        shadowRadius: 15,
+                        elevation: 10
+                    }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.1)', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+                                <Timer size={20} color="#38BDF8" />
+                            </View>
+                            <View>
+                                <Text style={{ fontSize: 9, fontWeight: 'bold', color: '#94A3B8', textTransform: 'uppercase', letterSpacing: 0.5 }}>DESCANSO</Text>
+                                <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFF', fontVariant: ['tabular-nums'] }}>
+                                    {formatTime(restTimeLeft)}
+                                </Text>
+                            </View>
+                        </View>
+                        
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                            <TouchableOpacity
+                                onPress={() => setRestTimeLeft(prev => prev ? Math.max(0, prev - 15) : null)}
+                                style={{ backgroundColor: 'rgba(255,255,255,0.1)', width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>-15</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setRestTimeLeft(prev => prev ? prev + 15 : 15)}
+                                style={{ backgroundColor: 'rgba(255,255,255,0.1)', width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <Text style={{ color: '#FFF', fontWeight: '700', fontSize: 14 }}>+15</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => setRestTimeLeft(null)}
+                                style={{ backgroundColor: '#EF4444', width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' }}
+                            >
+                                <X size={20} color="#FFF" />
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                )}
             </View>
 
             <FinishWorkoutModal

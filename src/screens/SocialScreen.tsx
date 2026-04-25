@@ -10,13 +10,15 @@ import { useSquads } from '../context/SquadContext';
 import { useLanguage } from '../context/LanguageContext';
 import { searchUsers } from '../services/userService';
 import { UserProfile } from '../types';
+import FeedScreen from './FeedScreen';
+import FriendsScreen from './FriendsScreen';
 
 export default function SocialScreen() {
     const { colors } = useTheme();
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
     const { squads, refreshSquads } = useSquads(); // Added refreshSquads
     const { t } = useLanguage();
-    const [activeTab, setActiveTab] = useState<'Squads' | 'Friends'>('Squads');
+    const [activeTab, setActiveTab] = useState<'Feed' | 'Friends' | 'Squads'>('Feed');
     const [searchQuery, setSearchQuery] = useState('');
 
     // Create Group State
@@ -99,75 +101,112 @@ export default function SocialScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            {/* Header */}
-            <View style={{ paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image
-                        source={require('../assets/logo.png')}
-                        style={{ width: 28, height: 28, marginRight: 12, borderRadius: 4 }}
-                    />
-                    <Text style={{ fontSize: 28, fontWeight: 'bold', color: colors.text }}>{t('social')}</Text>
+            {/* Header - only show for Squads to avoid double headers */}
+            {activeTab === 'Squads' && (
+                <View style={{ paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Image
+                            source={require('../assets/Isologo.png')}
+                            style={{ width: 28, height: 28, marginRight: 12, borderRadius: 4 }}
+                        />
+                        <Text style={{ fontSize: 28, fontWeight: 'bold', color: colors.text }}>{t('social')}</Text>
+                    </View>
+                    <View style={{ flexDirection: 'row', gap: 12 }}>
+                        <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' }}>
+                            <UserPlus size={24} color={colors.textSecondary} />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setIsCreatingGroup(true)}
+                            style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            <Plus size={24} color="#FFF" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                    <TouchableOpacity style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#E2E8F0' }}>
-                        <UserPlus size={24} color={colors.textSecondary} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setIsCreatingGroup(true)}
-                        style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: '#2563EB', alignItems: 'center', justifyContent: 'center' }}
-                    >
-                        <Plus size={24} color="#FFF" />
-                    </TouchableOpacity>
-                </View>
+            )}
+
+            {/* Tabs - pinned at top */}
+            <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', padding: 4, borderRadius: 16, marginHorizontal: 20, marginTop: activeTab === 'Squads' ? 0 : 60, marginBottom: 12 }}>
+                <TouchableOpacity
+                    onPress={() => setActiveTab('Feed')}
+                    style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        alignItems: 'center',
+                        backgroundColor: activeTab === 'Feed' ? '#FFF' : 'transparent',
+                        borderRadius: 12,
+                        shadowColor: activeTab === 'Feed' ? '#000' : 'transparent',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 4,
+                        elevation: activeTab === 'Feed' ? 2 : 0,
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: 8
+                    }}
+                >
+                    <Activity size={18} color={activeTab === 'Feed' ? '#2563EB' : '#64748B'} />
+                    <Text style={{ fontWeight: 'bold', color: activeTab === 'Feed' ? '#2563EB' : '#64748B', fontSize: 13, letterSpacing: 0.5 }}>FEED</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => setActiveTab('Friends')}
+                    style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        alignItems: 'center',
+                        backgroundColor: activeTab === 'Friends' ? '#FFF' : 'transparent',
+                        borderRadius: 12,
+                        shadowColor: activeTab === 'Friends' ? '#000' : 'transparent',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 4,
+                        elevation: activeTab === 'Friends' ? 2 : 0,
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: 8
+                    }}
+                >
+                    <Users size={18} color={activeTab === 'Friends' ? '#2563EB' : '#64748B'} />
+                    <Text style={{ fontWeight: 'bold', color: activeTab === 'Friends' ? '#2563EB' : '#64748B', fontSize: 13, letterSpacing: 0.5 }}>{t('friends').toUpperCase()}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    onPress={() => setActiveTab('Squads')}
+                    style={{
+                        flex: 1,
+                        paddingVertical: 10,
+                        alignItems: 'center',
+                        backgroundColor: activeTab === 'Squads' ? '#FFF' : 'transparent',
+                        borderRadius: 12,
+                        shadowColor: activeTab === 'Squads' ? '#000' : 'transparent',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 4,
+                        elevation: activeTab === 'Squads' ? 2 : 0,
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        gap: 8
+                    }}
+                >
+                    <Users size={18} color={activeTab === 'Squads' ? '#2563EB' : '#64748B'} />
+                    <Text style={{ fontWeight: 'bold', color: activeTab === 'Squads' ? '#2563EB' : '#64748B', fontSize: 13, letterSpacing: 0.5 }}>{t('squads').toUpperCase()}</Text>
+                </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false}>
-                {/* Tabs */}
-                <View style={{ flexDirection: 'row', backgroundColor: '#F1F5F9', padding: 4, borderRadius: 16, marginBottom: 24 }}>
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('Squads')}
-                        style={{
-                            flex: 1,
-                            paddingVertical: 10,
-                            alignItems: 'center',
-                            backgroundColor: activeTab === 'Squads' ? '#FFF' : 'transparent',
-                            borderRadius: 12,
-                            shadowColor: activeTab === 'Squads' ? '#000' : 'transparent',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 4,
-                            elevation: activeTab === 'Squads' ? 2 : 0,
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            gap: 8
-                        }}
-                    >
-                        <Users size={18} color={activeTab === 'Squads' ? '#2563EB' : '#64748B'} />
-                        <Text style={{ fontWeight: 'bold', color: activeTab === 'Squads' ? '#2563EB' : '#64748B', fontSize: 13, letterSpacing: 0.5 }}>{t('squads').toUpperCase()}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        onPress={() => setActiveTab('Friends')}
-                        style={{
-                            flex: 1,
-                            paddingVertical: 10,
-                            alignItems: 'center',
-                            backgroundColor: activeTab === 'Friends' ? '#FFF' : 'transparent',
-                            borderRadius: 12,
-                            shadowColor: activeTab === 'Friends' ? '#000' : 'transparent',
-                            shadowOffset: { width: 0, height: 2 },
-                            shadowOpacity: 0.05,
-                            shadowRadius: 4,
-                            elevation: activeTab === 'Friends' ? 2 : 0,
-                            flexDirection: 'row',
-                            justifyContent: 'center',
-                            gap: 8
-                        }}
-                    >
-                        <Activity size={18} color={activeTab === 'Friends' ? '#2563EB' : '#64748B'} />
-                        <Text style={{ fontWeight: 'bold', color: activeTab === 'Friends' ? '#2563EB' : '#64748B', fontSize: 13, letterSpacing: 0.5 }}>{t('friends').toUpperCase()}</Text>
-                        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444', position: 'absolute', top: 10, right: 30 }} />
-                    </TouchableOpacity>
+            {activeTab === 'Feed' && (
+                <View style={{ flex: 1, marginTop: -20 }}>
+                    <FeedScreen />
                 </View>
+            )}
+
+            {activeTab === 'Friends' && (
+                <View style={{ flex: 1, marginTop: -20 }}>
+                    <FriendsScreen />
+                </View>
+            )}
+
+            {activeTab === 'Squads' && (
+                <ScrollView contentContainerStyle={{ padding: 20 }} showsVerticalScrollIndicator={false}>
+
 
                 {/* Search */}
                 <View style={{
@@ -329,57 +368,8 @@ export default function SocialScreen() {
                         )}
                     </View>
                 )}
-
-                {/* Friends List */}
-                {activeTab === 'Friends' && (
-                    <View style={{ gap: 16 }}>
-                        {isSearching ? (
-                            <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>{t('searching')}</Text>
-                            </View>
-                        ) : searchResults.length > 0 ? searchResults.map((userRes) => (
-                            <View
-                                key={userRes.id}
-                                style={{
-                                    backgroundColor: '#FFF',
-                                    borderRadius: 16,
-                                    padding: 16,
-                                    borderWidth: 1,
-                                    borderColor: '#F1F5F9',
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between'
-                                }}
-                            >
-                                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                    <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: '#E2E8F0', overflow: 'hidden', marginRight: 12 }}>
-                                        {userRes.profileImage ? (
-                                            <Image source={{ uri: userRes.profileImage }} style={{ width: '100%', height: '100%' }} />
-                                        ) : (
-                                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                                                <Users size={24} color="#94A3B8" />
-                                            </View>
-                                        )}
-                                    </View>
-                                    <View style={{ flex: 1 }}>
-                                        <Text style={{ fontSize: 16, fontWeight: 'bold', color: '#0F172A', marginBottom: 2 }} numberOfLines={1}>{userRes.name}</Text>
-                                        <Text style={{ fontSize: 13, color: '#64748B' }}>{t('squadStreak').replace('{days}', userRes.streak.toString())}</Text>
-                                    </View>
-                                </View>
-                            </View>
-                        )) : friendSearchQuery.trim() !== '' ? (
-                            <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>{t('noUsersFound')} "{friendSearchQuery}"</Text>
-                            </View>
-                        ) : (
-                            <View style={{ alignItems: 'center', marginTop: 40 }}>
-                                <Users size={48} color="#E2E8F0" style={{ marginBottom: 16 }} />
-                                <Text style={{ color: '#94A3B8', fontSize: 16 }}>{t('searchFriendsPrompt')}</Text>
-                            </View>
-                        )}
-                    </View>
-                )}
-            </ScrollView>
+                </ScrollView>
+            )}
 
             {/* Create Group Modal */}
             <Modal

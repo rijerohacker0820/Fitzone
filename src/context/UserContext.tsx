@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import storage from '../utils/secureStorage';
+import { setOnUnauthorized } from '../api/apiClient';
 import { login as apiLogin, LoginRequest, LoginResponse } from '../services/authService';
 import { saveUserProfile, getUserProfile } from '../services/storage';
 import { useLanguage } from './LanguageContext';
@@ -34,24 +35,50 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const [token, setToken] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Load from storage on mount
+    // Logout function — also used by apiClient's 401 handler
+    const logout = useCallback(async () => {
+        setUser(null);
+        setToken(null);
+        try {
+            await storage.removeItem('auth_token');
+        } catch (e) {
+            console.error('[UserContext] Failed to delete token:', e);
+        }
+    }, []);
+
+    // Register the logout callback for 401 auto-logout
+    useEffect(() => {
+        setOnUnauthorized(() => {
+            logout();
+        });
+    }, [logout]);
+
+    // Load token from secure storage on mount
     useEffect(() => {
         const loadUser = async () => {
             try {
-                const storedToken = await AsyncStorage.getItem('user_token');
+                const storedToken = await storage.getItem('auth_token');
 
                 if (storedToken) {
                     setToken(storedToken);
-                    // Fetch real profile from API or Local Cache
+                    // Token exists, apiClient interceptor will attach it.
+                    // Fetch real profile from API (with local cache fallback)
                     const profile = await getUserProfile();
                     if (profile) {
                         setUser(profile);
                         if (profile.language) setLanguage(profile.language);
                         if (profile.theme) setTheme(profile.theme);
+                    } else {
+                        // Token is stale / user deleted — clear everything
+                        await storage.removeItem('auth_token');
+                        setToken(null);
                     }
                 }
             } catch (e) {
-                console.error("Failed to load user profile", e);
+                console.error('[UserContext] Failed to load user profile:', e);
+                // Clear potentially corrupt token
+                await storage.removeItem('auth_token');
+                setToken(null);
             } finally {
                 setIsLoading(false);
             }
@@ -62,34 +89,35 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const login = async (data: LoginRequest) => {
         setIsLoading(true);
         try {
-            const response = await apiLogin(data);
-            const { token } = response;
+            const response: LoginResponse = await apiLogin(data);
+            const newToken = response.token;
 
-            setToken(token);
-            await AsyncStorage.setItem('user_token', token);
+            if (!newToken) {
+                throw new Error('El servidor no devolvió un token de sesión');
+            }
 
-            // Now correctly fetch the user profile from the database
+            // Store token securely (cross-platform)
+            await storage.setItem('auth_token', newToken);
+            setToken(newToken);
+
+            // Fetch user profile from API
             const profile = await getUserProfile();
             if (profile) {
                 setUser(profile);
                 if (profile.language) setLanguage(profile.language);
                 if (profile.theme) setTheme(profile.theme);
             } else {
-                throw new Error("Failed to load profile from server");
+                throw new Error('No se pudo cargar el perfil del usuario');
             }
         } catch (error) {
-            console.error("Login failed", error);
+            // Clean up on failure
+            await storage.removeItem('auth_token');
+            setToken(null);
+            setUser(null);
             throw error;
         } finally {
             setIsLoading(false);
         }
-    };
-
-    const logout = async () => {
-        setUser(null);
-        setToken(null);
-        await AsyncStorage.removeItem('user_profile');
-        await AsyncStorage.removeItem('user_token');
     };
 
     const updateProfile = async (updates: Partial<UserProfile>) => {
@@ -98,10 +126,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         const newUser = { ...user, ...updates };
         setUser(newUser);
         try {
-            await saveUserProfile(newUser); // Save to API
-            await AsyncStorage.setItem('user_profile', JSON.stringify(newUser));
+            await saveUserProfile(newUser);
         } catch (e) {
-            console.error("Failed to save user profile", e);
+            console.error('[UserContext] Failed to save user profile:', e);
         }
     };
 
@@ -118,7 +145,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
                 setUser(profile);
             }
         } catch (e) {
-            console.error("Failed to refresh profile", e);
+            console.error('[UserContext] Failed to refresh profile:', e);
         }
     };
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet, Dimensions, Animated, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, StyleSheet, Dimensions, Animated, Pressable } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { X, Dumbbell, History, Sparkles, Play } from 'lucide-react-native';
 import { useLanguage } from '../context/LanguageContext';
@@ -23,7 +23,7 @@ export default function FABMenu({ visible, onClose, onAdd, onBuild, onExisting }
             animationType="fade"
             onRequestClose={onClose}
         >
-            <TouchableWithoutFeedback onPress={onClose}>
+            <Pressable onPress={onClose} style={styles.overlay}>
                 <View style={[styles.overlay, { backgroundColor: 'rgba(0,0,0,0.4)' }]}>
                     <View style={styles.container}>
                         {/* Build Option */}
@@ -88,7 +88,7 @@ export default function FABMenu({ visible, onClose, onAdd, onBuild, onExisting }
                         </TouchableOpacity>
                     </View>
                 </View>
-            </TouchableWithoutFeedback>
+            </Pressable>
         </Modal>
     );
 }

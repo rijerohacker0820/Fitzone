@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Modal, TextInput, Platform } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Modal, TextInput, Platform } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useUser } from '../context/UserContext';
+import { useToast } from '../components/Toast';
 import apiClient from '../api/apiClient';
 import { CheckCircle2, ChevronRight, Zap } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function MembershipScreen() {
     const { colors } = useTheme();
     const { t } = useLanguage();
     const { user, refreshUser } = useUser();
+    const { showToast } = useToast();
     
     const [plans, setPlans] = useState<any[]>([]);
     const [gymData, setGymData] = useState<any>(null);
@@ -36,12 +39,9 @@ export default function MembershipScreen() {
 
     const [confirmingPlan, setConfirmingPlan] = useState<any>(null);
 
-    const safeAlert = (title: string, msg: string) => {
-        if (Platform.OS === 'web') {
-            (globalThis as any).alert(`${title}\n\n${msg}`);
-        } else {
-            Alert.alert(title, msg);
-        }
+    // Use Toast instead of Alert for professional UX
+    const safeAlert = (title: string, msg: string, type: 'success' | 'error' | 'info' = 'info') => {
+        showToast(`${title}: ${msg}`, type);
     };
 
     // ... inside fetchPlans everything stays the same ...
@@ -65,7 +65,7 @@ export default function MembershipScreen() {
         const planId = confirmingPlan.id;
         
         if (!reference || !originPhone || !originDocument || !originBank) {
-            safeAlert("Datos incompletos", "Por favor completa todos los datos del pago móvil.");
+            safeAlert("Datos incompletos", "Por favor completa todos los datos del pago móvil.", 'error');
             return;
         }
 
@@ -85,11 +85,11 @@ export default function MembershipScreen() {
             setOriginPhone('');
             setOriginDocument('');
             setOriginBank('');
-            safeAlert('¡Éxito!', 'Te has suscrito exitosamente al plan. El pago ha sido procesado.');
+            safeAlert('¡Éxito!', 'Te has suscrito exitosamente al plan. El pago ha sido procesado.', 'success');
         } catch (error: any) {
             console.error(error);
             setConfirmingPlan(null); 
-            safeAlert('Error', error.response?.data || 'No se pudo procesar tu inscripción.');
+            safeAlert('Error', error.message || 'No se pudo procesar tu inscripción.', 'error');
         } finally {
             setSubscribingTo(null);
         }
@@ -129,13 +129,12 @@ export default function MembershipScreen() {
                                 borderRadius: 20,
                                 padding: 20,
                                 marginBottom: 16,
-                                borderWidth: isCurrentPlan ? 2 : 1,
+                                borderWidth: isCurrentPlan ? 2 : 0,
                                 borderColor: isCurrentPlan ? colors.primary : '#E2E8F0',
-                                shadowColor: '#000',
-                                shadowOffset: { width: 0, height: 4 },
-                                shadowOpacity: 0.05,
-                                shadowRadius: 10,
-                                elevation: 2,
+                                ...Platform.select({
+                                    web: { boxShadow: '0 4px 20px rgba(0,0,0,0.1)' } as any,
+                                    default: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 }
+                                })
                             }}
                         >
                             {isCurrentPlan && (
@@ -166,26 +165,31 @@ export default function MembershipScreen() {
                             <TouchableOpacity
                                 onPress={() => setConfirmingPlan(plan)}
                                 disabled={isCurrentPlan || subscribingTo === plan.id}
-                                style={{
-                                    backgroundColor: isCurrentPlan ? '#E2E8F0' : colors.primary,
-                                    paddingVertical: 14,
-                                    borderRadius: 12,
-                                    alignItems: 'center',
-                                    flexDirection: 'row',
-                                    justifyContent: 'center',
-                                    opacity: subscribingTo === plan.id ? 0.7 : 1
-                                }}
                             >
-                                {subscribingTo === plan.id ? (
-                                    <ActivityIndicator color={colors.card} />
-                                ) : (
-                                    <>
-                                        <Text style={{ color: isCurrentPlan ? colors.textSecondary : colors.card, fontSize: 16, fontWeight: 'bold', marginRight: 8 }}>
-                                            {isCurrentPlan ? 'Activado' : 'Elegir Plan'}
-                                        </Text>
-                                        {!isCurrentPlan && <ChevronRight color={colors.card} size={20} />}
-                                    </>
-                                )}
+                                <LinearGradient
+                                    colors={isCurrentPlan ? ['#E2E8F0', '#CBD5E1'] : ['#F97316', '#EA580C']}
+                                    start={{ x: 0, y: 0 }}
+                                    end={{ x: 1, y: 1 }}
+                                    style={{
+                                        paddingVertical: 14,
+                                        borderRadius: 14,
+                                        alignItems: 'center',
+                                        flexDirection: 'row',
+                                        justifyContent: 'center',
+                                        opacity: subscribingTo === plan.id ? 0.7 : 1
+                                    }}
+                                >
+                                    {subscribingTo === plan.id ? (
+                                        <ActivityIndicator color={colors.card} />
+                                    ) : (
+                                        <>
+                                            <Text style={{ color: isCurrentPlan ? colors.textSecondary : '#FFF', fontSize: 16, fontWeight: 'bold', marginRight: 8 }}>
+                                                {isCurrentPlan ? 'Activado' : 'Elegir Plan'}
+                                            </Text>
+                                            {!isCurrentPlan && <ChevronRight color="#FFF" size={20} />}
+                                        </>
+                                    )}
+                                </LinearGradient>
                             </TouchableOpacity>
                         </View>
                     );
@@ -211,9 +215,9 @@ export default function MembershipScreen() {
                         <View style={{ backgroundColor: '#F1F5F9', padding: 16, borderRadius: 12, marginBottom: 20 }}>
                             <Text style={{ fontSize: 14, color: '#64748B', marginBottom: 4 }}>Monto a Transferir (Bs)</Text>
                             <Text style={{ fontSize: 28, fontWeight: 'bold', color: colors.primary }}>
-                                Bs. {confirmingPlan ? (confirmingPlan.price * (gymData?.exchangeRate || 40)).toFixed(2) : '0.00'}
+                                Bs. {confirmingPlan ? (confirmingPlan.price * (gymData?.exchangeRate || 0)).toFixed(2) : '0.00'}
                             </Text>
-                            <Text style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>Tasa del día: {gymData?.exchangeRate || 40} Bs/$</Text>
+                            <Text style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>Tasa del día: {gymData?.exchangeRate || 'No disponible'} Bs/$</Text>
                         </View>
 
                         <ScrollView style={{ maxHeight: 350, width: '100%', paddingRight: 5 }}>

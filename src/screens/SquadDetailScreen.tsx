@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, TextInput, KeyboardAvoidingView, Platform, Modal, Alert, TouchableWithoutFeedback, FlatList } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, TextInput, KeyboardAvoidingView, Platform, Modal, Alert, Pressable, FlatList } from 'react-native';
+import AnimatedReanimated, { FadeInLeft, FadeInRight, Layout } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { ChevronLeft, Flame, MoreVertical, Trophy, Check, Target, Zap, Clock, Send, Plus, Dumbbell, X, Edit2, LogOut, Camera } from 'lucide-react-native';
@@ -33,12 +34,13 @@ interface ChatMessage {
     senderImage?: string;
     text: string;
     timestamp: string;
-    type?: 'text' | 'routine' | 'exercise';
+    type?: 'text' | 'routine' | 'exercise' | 'image';
     routineId?: string;
     routineName?: string;
     exerciseName?: string;
     sets?: number;
     reps?: number;
+    imageUrl?: string;
 }
 
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -137,7 +139,7 @@ export default function SquadDetailScreen() {
     const parseMessageDto = (dto: ChatMessageDto): ChatMessage => {
         let text = dto.content;
         let type: any = 'text';
-        let routineId, routineName, exerciseName, sets, reps;
+        let routineId, routineName, exerciseName, sets, reps, imageUrl;
 
         try {
             const parsed = JSON.parse(dto.content);
@@ -149,6 +151,7 @@ export default function SquadDetailScreen() {
                 exerciseName = parsed.exerciseName;
                 sets = parsed.sets;
                 reps = parsed.reps;
+                imageUrl = parsed.imageUrl;
             }
         } catch {
             // Is a plain text message
@@ -166,7 +169,8 @@ export default function SquadDetailScreen() {
             routineName,
             exerciseName,
             sets,
-            reps
+            reps,
+            imageUrl
         };
     };
 
@@ -305,7 +309,7 @@ export default function SquadDetailScreen() {
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.5,
@@ -380,7 +384,7 @@ export default function SquadDetailScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: colors.background }}>
-            <TouchableWithoutFeedback onPress={() => setShowOptions(false)}>
+            <Pressable onPress={() => setShowOptions(false)} style={{ zIndex: 10 }}>
                 {/* Header */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 60, paddingBottom: 20, backgroundColor: '#FFF', zIndex: 10 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -459,7 +463,7 @@ export default function SquadDetailScreen() {
                         </View>
                     </View>
                 </View>
-            </TouchableWithoutFeedback>
+            </Pressable>
 
             {/* Main Content Area */}
             <View style={{ flex: 1, paddingHorizontal: 20 }}>
@@ -670,11 +674,15 @@ export default function SquadDetailScreen() {
                                 const senderImg = msg.senderImage;
 
                                 return (
-                                    <View style={{
-                                        flexDirection: isMe ? 'row-reverse' : 'row',
-                                        marginBottom: 16,
-                                        alignItems: 'flex-end'
-                                    }}>
+                                    <AnimatedReanimated.View 
+                                        entering={isMe ? FadeInRight : FadeInLeft}
+                                        layout={Layout.springify()}
+                                        style={{
+                                            flexDirection: isMe ? 'row-reverse' : 'row',
+                                            marginBottom: 16,
+                                            alignItems: 'flex-end'
+                                        }}
+                                    >
                                         {!isMe && (
                                             <View style={{ width: 32, height: 32, borderRadius: 12, backgroundColor: '#CBD5E1', marginRight: 8, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                                                 {senderImg ? (
@@ -697,7 +705,9 @@ export default function SquadDetailScreen() {
                                             elevation: 1
                                         }}>
                                             {!isMe && <Text style={{ fontSize: 10, fontWeight: 'bold', color: '#64748B', marginBottom: 4 }}>{senderName}</Text>}
-                                            {msg.type === 'routine' ? (
+                                            {msg.type === 'image' && msg.imageUrl ? (
+                                                <Image source={{ uri: msg.imageUrl }} style={{ width: 200, height: 200, borderRadius: 12 }} resizeMode="cover" />
+                                            ) : msg.type === 'routine' ? (
                                                 <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: isMe ? 'rgba(255,255,255,0.2)' : '#F1F5F9', padding: 12, borderRadius: 12, gap: 12 }}>
                                                     <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: isMe ? '#FFF' : '#E2E8F0', alignItems: 'center', justifyContent: 'center' }}>
                                                         <Dumbbell size={20} color={isMe ? '#2563EB' : '#64748B'} />
@@ -722,7 +732,7 @@ export default function SquadDetailScreen() {
                                             )}
                                             <Text style={{ fontSize: 10, color: isMe ? '#BFDBFE' : '#94A3B8', marginTop: 4, alignSelf: 'flex-end' }}>{msg.timestamp}</Text>
                                         </View>
-                                    </View>
+                                    </AnimatedReanimated.View>
                                 );
                             }}
                         />

@@ -5,36 +5,39 @@ import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import { SquadProvider } from './src/context/SquadContext';
 import { UserProvider } from './src/context/UserContext';
+import { ToastProvider } from './src/components/Toast';
 import RootNavigator from './src/navigation/RootNavigator';
 import { StatusBar } from 'expo-status-bar';
 import { View } from 'react-native';
 
 const MainApp = () => {
-  const { colors, themeName } = useTheme();
-  return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      <StatusBar style={themeName === 'Obsidian' ? 'light' : 'auto'} />
-      <NavigationContainer>
-        <RootNavigator />
-      </NavigationContainer>
-    </View>
-  );
+    const { colors, themeName } = useTheme();
+    return (
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <StatusBar style={themeName === 'Obsidian' ? 'light' : 'auto'} />
+            <NavigationContainer>
+                <RootNavigator />
+            </NavigationContainer>
+        </View>
+    );
 };
 
 import ErrorBoundary from './src/components/ErrorBoundary';
 
 export default function App() {
-  return (
-    <ErrorBoundary>
-      <LanguageProvider>
-        <ThemeProvider>
-          <UserProvider>
-            <SquadProvider>
-              <MainApp />
-            </SquadProvider>
-          </UserProvider>
-        </ThemeProvider>
-      </LanguageProvider>
-    </ErrorBoundary>
-  );
+    return (
+        <ErrorBoundary>
+            <LanguageProvider>
+                <ThemeProvider>
+                    <UserProvider>
+                        <SquadProvider>
+                            <ToastProvider>
+                                <MainApp />
+                            </ToastProvider>
+                        </SquadProvider>
+                    </UserProvider>
+                </ThemeProvider>
+            </LanguageProvider>
+        </ErrorBoundary>
+    );
 }

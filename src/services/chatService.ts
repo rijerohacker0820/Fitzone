@@ -1,19 +1,21 @@
 import * as signalR from '@microsoft/signalr';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import apiClient, { USE_PRODUCTION_API, LOCAL_URL } from '../api/apiClient';
+import storage from '../utils/secureStorage';
+import apiClient from '../api/apiClient';
+import { ENV } from '../config/env';
 
-const HUB_URL = USE_PRODUCTION_API 
-    ? 'http://Fitzone-Development.somee.com/chathub' 
-    : `${LOCAL_URL}/chathub`;
+const HUB_URL = ENV.USE_PRODUCTION
+    ? 'http://Fitzone-Development.somee.com/chathub'
+    : ENV.API_URL.replace('/api', '/chathub');
 
 export interface ChatMessagePayload {
     text: string;
-    type?: 'text' | 'routine' | 'exercise';
+    type?: 'text' | 'routine' | 'exercise' | 'image';
     routineId?: string;
     routineName?: string;
     exerciseName?: string;
     sets?: number;
     reps?: number;
+    imageUrl?: string;
 }
 
 export interface ChatMessageDto {
@@ -36,7 +38,7 @@ class ChatService {
         }
 
         this.messageCallback = onMessage;
-        const token = await AsyncStorage.getItem('user_token');
+        const token = await storage.getItem('auth_token');
 
         this.connection = new signalR.HubConnectionBuilder()
             .withUrl(HUB_URL, {

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Image, Alert, ScrollView } from 'react-native';
+import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Image, Alert, Switch } from 'react-native';
+import { BlurView } from 'expo-blur';
+import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { Zap, Smile, Coffee, Check, Trophy, Meh, Activity, BatteryWarning } from 'lucide-react-native';
@@ -17,6 +19,7 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
     const [sensation, setSensation] = useState<'Great' | 'Good' | 'Neutral' | 'Hard' | 'Exhausted'>('Good');
     const [notes, setNotes] = useState('');
     const [imageUri, setImageUri] = useState<string | undefined>(undefined);
+    const [shareToFeed, setShareToFeed] = useState(true);
 
     const handleSave = () => {
         onSave(sensation, notes, imageUri);
@@ -75,12 +78,15 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
 
     return (
         <Modal visible={visible} transparent animationType="fade">
-            <View style={styles.overlay}>
+            <BlurView intensity={80} tint={colors.background === '#0F172A' ? 'dark' : 'light'} style={styles.overlay}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ width: '100%', alignItems: 'center' }}
                 >
-                    <View style={[styles.content, { backgroundColor: colors.card }]}>
+                    <Animated.View 
+                        entering={FadeInUp.duration(600).springify()}
+                        style={[styles.content, { backgroundColor: colors.card }]}
+                    >
                         <Text style={[styles.title, { color: colors.text }]}>Finalizar entrenamiento</Text>
                         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>¿Cómo te sentiste después de esta sesión?</Text>
 
@@ -135,6 +141,14 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                             </View>
                         )}
 
+                        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 16, marginBottom: 8, padding: 12, backgroundColor: colors.background, borderRadius: 12 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <Trophy size={20} color={colors.primary} />
+                                <Text style={{ color: colors.text, fontWeight: '600', marginLeft: 8 }}>Compartir en el Feed</Text>
+                            </View>
+                            <Switch value={shareToFeed} onValueChange={setShareToFeed} trackColor={{ true: colors.primary }} />
+                        </View>
+
                         <View style={styles.footer}>
                             <TouchableOpacity onPress={onClose} style={styles.skipButton}>
                                 <Text style={{ color: colors.textSecondary, fontWeight: '600' }}>Cancelar</Text>
@@ -147,9 +161,9 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                                 <Text style={[styles.saveButtonText, { color: colors.background }]}>Guardar</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
+                    </Animated.View>
                 </KeyboardAvoidingView>
-            </View>
+            </BlurView>
         </Modal>
     );
 }
@@ -166,11 +180,18 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 24,
         padding: 24,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.1,
-        shadowRadius: 20,
-        elevation: 10
+        ...Platform.select({
+            web: {
+                boxShadow: '0px 10px 20px rgba(0,0,0,0.1)'
+            } as any,
+            default: {
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: 0.1,
+                shadowRadius: 20,
+                elevation: 10
+            }
+        })
     },
     title: {
         fontSize: 24,

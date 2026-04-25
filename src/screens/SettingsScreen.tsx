@@ -1,17 +1,19 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useUser } from '../context/UserContext';
 import { ChevronLeft, Save, User, Ruler, Weight, Globe, Moon, Target } from 'lucide-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ProfileTheme, Language } from '../types';
+import { useToast } from '../components/Toast';
 
 export default function SettingsScreen() {
     const { colors } = useTheme();
     const { t, setLanguage } = useLanguage();
     const { user, updateProfile } = useUser();
     const navigation = useNavigation();
+    const { showToast } = useToast();
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -39,10 +41,10 @@ export default function SettingsScreen() {
             // Also update global language context
             setLanguage(selectedLang);
 
-            Alert.alert(t('success'), t('profileUpdated'));
+            showToast(t('profileUpdated'), 'success');
             navigation.goBack();
         } catch (error) {
-            Alert.alert(t('error'), t('failedUpdateProfile'));
+            showToast(t('failedUpdateProfile'), 'error');
         } finally {
             setIsLoading(false);
         }

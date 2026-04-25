@@ -288,7 +288,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                         </TouchableOpacity>
 
                         {/* Session Details Card */}
-                        <View style={{ backgroundColor: '#FFF', borderRadius: 20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2, marginBottom: 20 }}>
+                        <View style={[{ backgroundColor: '#FFF', borderRadius: 20, padding: 20, marginBottom: 20 }, Platform.OS === 'web' ? { boxShadow: '0px 2px 10px rgba(0,0,0,0.05)' } as any : { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 10, elevation: 2 }]}>
                             <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1E293B', marginBottom: 16 }}>Detalles de la Sesión</Text>
 
                             {/* Date Selector */}
@@ -377,7 +377,7 @@ export default function LogWorkoutModal({ visible, onClose, onLogSaved, initialR
                                 borderRadius: 16,
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5
+                                ...Platform.select({ web: { boxShadow: '0px 4px 10px rgba(0,0,0,0.1)' } as any, default: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 } })
                             }}
                         >
                             <Text style={{ color: '#FFF', fontSize: 18, fontWeight: 'bold' }}>Completar Entrenamiento</Text>

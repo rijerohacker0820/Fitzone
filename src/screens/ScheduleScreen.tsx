@@ -9,7 +9,7 @@ import { WorkoutRoutine } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 
 const { width } = Dimensions.get('window');
-const LOGO_IMG = require('../assets/logo.png');
+const LOGO_IMG = require('../assets/Isologo.png');
 
 const DAYS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
 

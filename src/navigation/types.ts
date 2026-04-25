@@ -9,4 +9,7 @@ export type RootStackParamList = {
     SquadSettings: { squadId: string };
     Settings: undefined;
     Login: undefined;
+    SignUp: undefined;
+    CreatePost: undefined;
+    Friends: undefined;
 };

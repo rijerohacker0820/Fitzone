@@ -9,7 +9,7 @@ import { generateWorkout } from '../services/gemini';
 import SetRepSelectionModal from './SetRepSelectionModal';
 import { customAlert } from '../utils/alert';
 
-const LOGO_IMG = require('../assets/logo.png');
+const LOGO_IMG = require('../assets/Isologo.png');
 
 const QUICK_EXERCISES = [
     'Squat', 'Bench Press', 'Deadlift',

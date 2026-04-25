@@ -1,9 +1,13 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity } from 'react-native';
+import { View, Text, Image, Pressable } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Flame } from 'lucide-react-native';
 import { SquadMember } from '../context/SquadContext';
+import { shadows } from '../theme/shadows';
+import { spacing } from '../theme/spacing';
+import { RADIUS } from '../theme/colors';
 
 interface Props {
     squadName?: string;
@@ -26,19 +30,35 @@ export default function StreakCard({ squadName, streak = 0, onPress, isActive = 
         return sorted.slice(0, 3);
     }, [members]);
 
+    const scale = useSharedValue(1);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        transform: [{ scale: scale.value }]
+    }));
+
+    const handlePressIn = () => {
+        scale.value = withSpring(0.97, { damping: 10, stiffness: 400 });
+    };
+
+    const handlePressOut = () => {
+        scale.value = withSpring(1, { damping: 10, stiffness: 400 });
+    };
+
     return (
-        <TouchableOpacity
+        <Pressable
             onPress={onPress}
-            activeOpacity={0.9} // Slight fade feedback
-            style={{
-                backgroundColor: colors.card, // Using card color (white)
-                borderRadius: 24,
-                padding: 20,
+            onPressIn={handlePressIn}
+            onPressOut={handlePressOut}
+        >
+            <Animated.View style={[{
+                backgroundColor: colors.card,
+                borderRadius: RADIUS.xl,
+                padding: spacing.lg,
                 borderWidth: isActive ? 2 : 1,
                 borderColor: isActive ? colors.primary : '#E2E8F0',
-            }}
-        >
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                ...shadows.md,
+            }, animatedStyle]}>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
                         <Flame size={20} color={colors.primary} fill={colors.primary} />
@@ -78,7 +98,8 @@ export default function StreakCard({ squadName, streak = 0, onPress, isActive = 
                         </View>
                     ))}
                 </View>
-            </View>
-        </TouchableOpacity>
+                </View>
+            </Animated.View>
+        </Pressable>
     );
 }

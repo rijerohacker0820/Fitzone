@@ -8,8 +8,19 @@ export interface Group {
     memberCount: number;
     activityLevel: string;
     isUserMember: boolean;
+    isPublic?: boolean;
+    imageUrl?: string;
+    adminUserId?: string;
     color?: string; // Optional for UI
     icon?: string; // Optional for UI
+}
+
+export interface GroupMember {
+    userId: string;
+    fullName: string;
+    avatarUrl: string | null;
+    role: string;
+    joinedAt: string;
 }
 
 export const getGroups = async (): Promise<Group[]> => {
@@ -22,10 +33,19 @@ export const getGroups = async (): Promise<Group[]> => {
     }
 };
 
-export const createGroup = async (name: string, description: string) => {
+export const getPublicGroups = async (): Promise<Group[]> => {
     try {
-        // Backend expects { name, description }
-        const response = await apiClient.post('/groups', { name, description });
+        const response = await apiClient.get('/groups/public');
+        return response.data;
+    } catch (error) {
+        console.error('Failed to fetch public groups', error);
+        return [];
+    }
+};
+
+export const createGroup = async (name: string, description: string, activityLevel: string = 'Medio') => {
+    try {
+        const response = await apiClient.post('/groups', { name, description, activityLevel });
         return response.data;
     } catch (error) {
         console.error('Failed to create group', error);
@@ -38,7 +58,7 @@ export const getMyGroups = async () => {
     return response.data;
 };
 
-export const getGroupMembers = async (groupId: string) => {
+export const getGroupMembers = async (groupId: string): Promise<GroupMember[]> => {
     const response = await apiClient.get(`/groups/${groupId}/members`);
     return response.data;
 };
@@ -58,9 +78,6 @@ export const addMemberToGroup = async (groupId: string, userId: string) => {
         return response.data;
     } catch (error: any) {
         console.error('Failed to add member to group', error);
-        if (error.response && error.response.data && error.response.data.message) {
-            throw new Error(error.response.data.message);
-        }
         throw error;
     }
 };
@@ -74,14 +91,38 @@ export const leaveGroup = async (groupId: string) => {
     }
 };
 
+export const removeMemberFromGroup = async (groupId: string, userId: string) => {
+    try {
+        await apiClient.delete(`/groups/${groupId}/members/${userId}`);
+    } catch (error) {
+        console.error('Failed to remove member', error);
+        throw error;
+    }
+};
+
+export const updateGroup = async (groupId: string, updates: {
+    name?: string;
+    description?: string;
+    activityLevel?: string;
+    imageUrl?: string;
+    isPublic?: boolean;
+}) => {
+    const response = await apiClient.put(`/groups/${groupId}`, updates);
+    return response.data;
+};
+
+export const sendAdvancedMessage = async (groupId: string, payload: {
+    content: string;
+    imageUrl?: string;
+    messageType: string; // text | image | routine | exercise
+}) => {
+    const response = await apiClient.post(`/groups/${groupId}/messages`, payload);
+    return response.data;
+};
+
 export const getUserGroups = async (): Promise<Group[]> => {
     try {
         const response = await apiClient.get('/groups');
-        // Filter locally or backend endpoint? Backend /groups returns all?
-        // Let's assume /groups returns what we need or we filter.
-        // Actually, looking at backend controller, GET /api/groups returns all groups.
-        // We might need a separate endpoint for "My Groups" or filter client side.
-        // For now, return all and let UI filter by isUserMember
         return response.data.filter((g: Group) => g.isUserMember);
     } catch (error) {
         console.error('Failed to fetch user groups', error);

@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Dimensions, Modal, FlatList } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Dimensions, Modal, FlatList, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUser } from '../context/UserContext';
 import { RootStackParamList } from '../navigation/types';
 import ACWRChart from '../components/ACWRChart';
+import GlobalHeader from '../components/GlobalHeader';
 import { ACWRData, WorkoutRoutine } from '../types';
-import { calculateACWR } from '../utils/acwr';
-import { getWorkoutLogs, saveWorkoutLog, saveRoutine, getRoutines } from '../services/storage';
-import { Plus, Zap, Award, CheckCircle2, Dumbbell, X, ChevronRight } from 'lucide-react-native';
+import { getWorkoutLogs, saveRoutine, getRoutines } from '../services/storage';
+import { Zap, Dumbbell, X, ChevronRight } from 'lucide-react-native';
 import StreakCard from '../components/StreakCard';
 import ActionButtons from '../components/ActionButtons';
 import FABMenu from '../components/FABMenu';
@@ -18,7 +18,6 @@ import ManualWorkoutModal from '../components/ManualWorkoutModal';
 import * as Crypto from 'expo-crypto';
 import { useSquads } from '../context/SquadContext';
 
-const LOGO_IMG = require('../assets/logo.png');
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - 40; // 20px padding on each side parent
 
@@ -28,10 +27,10 @@ export default function HomeScreen() {
     const { user } = useUser();
     const navigation = useNavigation<any>();
     const { squads } = useSquads();
+    const insets = useSafeAreaInsets();
     const [acwrData, setAcwrData] = useState<ACWRData[]>([]);
     const [recentLogs, setRecentLogs] = useState<WorkoutRoutine[]>([]);
     const [allRoutines, setAllRoutines] = useState<WorkoutRoutine[]>([]);
-    const [status, setStatus] = useState<'Optimal' | 'Fatigue Risk' | 'Recovery'>('Optimal');
     const [fabMenuVisible, setFabMenuVisible] = useState(false);
     const [manualModalVisible, setManualModalVisible] = useState(false);
     const [existingRoutineModalVisible, setExistingRoutineModalVisible] = useState(false);
@@ -47,44 +46,27 @@ export default function HomeScreen() {
     }, []);
 
     const loadData = async () => {
-        // Mock data if empty for demo
-        // In real app, fetch logs -> calculateACWR
-        // For visual demo, we generate a trend
         const mockData: ACWRData[] = [];
         const today = new Date();
-        for (let i = 29; i >= 0; i--) { // 30 days
+        for (let i = 29; i >= 0; i--) { 
             const d = new Date(today);
             d.setDate(d.getDate() - i);
             mockData.push({
                 date: d.toISOString(),
                 acuteLoad: 0, chronicLoad: 0,
-                ratio: 0.8 + (Math.random() * 0.7), // 0.8 to 1.5
+                ratio: 0.8 + (Math.random() * 0.7),
                 status: 'Optimal'
             });
         }
         setAcwrData(mockData);
 
-        // Real logic integration:
         const logs = await getWorkoutLogs();
-        // Sort logs by date desc
         logs.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setRecentLogs(logs.slice(0, 5)); // Take latest 5
+        setRecentLogs(logs.slice(0, 5));
         setAllRoutines(await getRoutines());
-        // const currentACWR = calculateACWR(logs);
-        // setStatus(currentACWR.status);
     };
 
-    // Calculate best streak
-    const bestSquad = React.useMemo(() => {
-        if (!squads || squads.length === 0) return null;
-        return squads.reduce((prev, current) => (prev.streak > current.streak) ? prev : current);
-    }, [squads]);
-
-    const displaySquadName = bestSquad ? bestSquad.name : 'Iron Squad';
-    const displayStreak = bestSquad ? bestSquad.streak : 0;
-
     const handleStartQuickWorkout = () => {
-        // Create a blank "Quick Workout" routine
         const quickWorkout: WorkoutRoutine = {
             id: Crypto.randomUUID(),
             name: t('quickWorkout'),
@@ -92,14 +74,12 @@ export default function HomeScreen() {
             date: new Date().toISOString(),
             duration: 0,
             status: 'in-progress',
-            tags: ['Quick Workout'] // Keep as internal tag but shown translated below
+            tags: ['Quick Workout']
         };
 
         setFabMenuVisible(false);
         navigation.navigate('ActiveWorkout', { routine: quickWorkout });
     };
-
-
 
     const handleRoutineCreated = async (routine: WorkoutRoutine) => {
         await saveRoutine(routine);
@@ -112,35 +92,15 @@ export default function HomeScreen() {
     };
 
     return (
-        <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ padding: 20 }}>
-            {/* Header */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 40, marginBottom: 20 }}>
-                {/* Logo */}
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Image
-                        source={LOGO_IMG}
-                        style={{ width: 40, height: 40, borderRadius: 6 }}
-                        resizeMode="contain"
-                    />
-                </View>
-                {/* Profile Avatar */}
-                <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
-                    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FECACA', borderWidth: 2, borderColor: colors.secondary, justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }}>
-                        {user?.profileImage ? (
-                            <Image source={{ uri: user.profileImage }} style={{ width: '100%', height: '100%' }} />
-                        ) : (
-                            <Text style={{ color: '#7F1D1D', fontWeight: 'bold' }}>{user?.name?.charAt(0)}</Text>
-                        )}
-                    </View>
-                </TouchableOpacity>
-            </View>
+        <View style={{ flex: 1, backgroundColor: colors.background }}>
+            <GlobalHeader />
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20, paddingTop: insets.top + 70, paddingBottom: 100 }}>
 
             <View style={{ marginBottom: 24 }}>
                 <Text style={{ fontSize: 28, fontWeight: 'bold', color: colors.text }}>{t('welcomeBack')}, {user?.name?.split(' ')[0]}</Text>
                 <Text style={{ fontSize: 16, color: colors.textSecondary, marginTop: 4 }}>{t('momentumMsg')}</Text>
             </View>
 
-            {/* Squads Carousel */}
             <View style={{ marginBottom: 24 }}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 12 }}>{t('yourSquads')}</Text>
                 <View>
@@ -151,7 +111,6 @@ export default function HomeScreen() {
                         showsHorizontalScrollIndicator={false}
                         snapToInterval={CARD_WIDTH}
                         snapToAlignment="center"
-                        // ensure the scrollview children can take full width
                         style={{ width: '100%', overflow: 'visible' }}
                     >
                         {(!squads || squads.length === 0) ? (
@@ -167,7 +126,6 @@ export default function HomeScreen() {
                         ) : (
                             squads.map((squad) => (
                                 <View key={squad.id} style={{ width: CARD_WIDTH }}>
-                                    {/* Add right padding inside the item to create visual gap if needed, or keeping it tight */}
                                     <View style={{ width: '100%', paddingRight: 8 }}>
                                         <StreakCard
                                             squadName={squad.name}
@@ -184,18 +142,14 @@ export default function HomeScreen() {
                 </View>
             </View>
 
-            {/* Fitness Status Card (ACWR) */}
             <ACWRChart data={acwrData} />
 
-            {/* Action Buttons */}
             <ActionButtons onLogPress={() => setFabMenuVisible(true)} onSchedulePress={handleSchedulePress} />
 
-            {/* Recent History Header */}
             <Text style={{ fontSize: 18, fontWeight: 'bold', color: colors.text, marginBottom: 12 }}>{t('recentHistory')}</Text>
-            {/* Placeholder for history items */}
             <View style={{ marginBottom: 40 }}>
                 {recentLogs.length === 0 ? (
-                    <View style={{ height: 100, backgroundColor: colors.card, borderRadius: 16, justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={{ height: 100, backgroundColor: colors.card, borderRadius: 20, padding: 16, justifyContent: 'center', alignItems: 'center', ...Platform.select({ web: { boxShadow: '0 4px 20px rgba(0,0,0,0.1)' } as any, default: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 } }) }}>
                         <Text style={{ color: colors.textSecondary }}>{t('noWorkouts')}</Text>
                     </View>
                 ) : (
@@ -206,7 +160,8 @@ export default function HomeScreen() {
                             style={{
                                 backgroundColor: colors.card,
                                 padding: 16,
-                                borderRadius: 16,
+                                borderRadius: 20,
+                                shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5,
                                 marginBottom: 12,
                                 flexDirection: 'row',
                                 justifyContent: 'space-between',
@@ -217,7 +172,7 @@ export default function HomeScreen() {
                                 <View style={{
                                     width: 40, height: 40,
                                     borderRadius: 12,
-                                    backgroundColor: colors.primary + '20', // reduced opacity
+                                    backgroundColor: colors.primary + '20',
                                     justifyContent: 'center', alignItems: 'center',
                                     marginRight: 12,
                                     flexShrink: 0
@@ -250,15 +205,6 @@ export default function HomeScreen() {
                 onBuild={() => setManualModalVisible(true)}
                 onExisting={() => {
                     setFabMenuVisible(false);
-                    // Open a selector. For now, since we may not have the routines loaded in HomeScreen state yet or we want a dedicated UI,
-                    // we can either fetch them now or navigate to Routines tab.
-                    // However, to fulfill "like the Add button on routine screen", it implies an inline flow.
-                    // Let's assume we want to show a picker.
-                    // For simplicity and robustness, let's navigate to Routines screen for now?
-                    // User says: "in case i wanna do one of the routines i already created".
-                    // Navigating to Routines tab is the most robust way to "do one of the routines".
-                    // But if they are in "Log Workout", maybe they want a quick picker.
-                    // I'll implement a quick picker modal here using the routines data.
                     setExistingRoutineModalVisible(true);
                 }}
             />
@@ -271,7 +217,6 @@ export default function HomeScreen() {
                 initialRoutine={null}
             />
 
-            {/* Existing Routine Picker Modal */}
             <Modal
                 visible={existingRoutineModalVisible}
                 animationType="slide"
@@ -323,7 +268,7 @@ export default function HomeScreen() {
                     />
                 </View>
             </Modal>
-
-        </ScrollView>
+            </ScrollView>
+        </View>
     );
 }

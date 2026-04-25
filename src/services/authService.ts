@@ -1,42 +1,55 @@
-import { Platform } from 'react-native';
-import { BASE_URL } from '../api/apiClient';
+import apiClient from '../api/apiClient';
 
-const API_URL = `${BASE_URL}/auth`;
-
+// ── Login ──────────────────────────────────────────────
+// POST /api/auth/login — only email + password
 export interface LoginRequest {
-    fullName: string; // The API seems to require this according to the user request, though usually login needs email/password. 
-                      // Wait, the user provided body: { "fullName": "Usuario Prueba 2", "email": "test2@test.com", "password": "password" }
-                      // This looks like a signup body, or a very strange login.
-                      // But the endpoint is /login. 
-                      // I will follow the user's provided body structure exactly.
     email: string;
     password: string;
 }
 
 export interface LoginResponse {
     token: string;
-    username: string;
-    email: string;
+    username?: string;
+    email?: string;
 }
 
 export const login = async (data: LoginRequest): Promise<LoginResponse> => {
-    try {
-        const response = await fetch(`${API_URL}/login`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data),
-        });
+    // Send ONLY email and password — never fullName
+    const response = await apiClient.post('/auth/login', {
+        email: data.email,
+        password: data.password,
+    });
+    return response.data;
+};
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            throw new Error(errorData?.message || 'Login failed');
-        }
+// ── Register ───────────────────────────────────────────
+// POST /api/auth/register
+export interface RegisterRequest {
+    fullName: string;
+    email: string;
+    password: string;
+    documentId: string;
+    gymId?: string;
+}
 
-        return await response.json();
-    } catch (error) {
-        console.error('Login error:', error);
-        throw error;
+export interface RegisterResponse {
+    token?: string;
+    message?: string;
+}
+
+export const register = async (data: RegisterRequest): Promise<RegisterResponse> => {
+    // Clean: only send fields that have values
+    const payload: Record<string, string> = {
+        fullName: data.fullName,
+        email: data.email,
+        password: data.password,
+        documentId: data.documentId,
+    };
+
+    if (data.gymId && data.gymId.trim() !== '') {
+        payload.gymId = data.gymId.trim();
     }
+
+    const response = await apiClient.post('/auth/register', payload);
+    return response.data;
 };

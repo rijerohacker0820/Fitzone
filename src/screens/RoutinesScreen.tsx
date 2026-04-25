@@ -16,7 +16,7 @@ import { ActionSheetIOS, Platform, Alert, Image, Share } from 'react-native';
 import { useRoute, useFocusEffect } from '@react-navigation/native';
 import { Share2, Edit3, ChevronRight, Dumbbell, Star, CheckCircle2, Plus } from 'lucide-react-native';
 
-const LOGO_IMG = require('../assets/logo.png');
+const LOGO_IMG = require('../assets/Isologo.png');
 import { useSquads } from '../context/SquadContext';
 
 export default function RoutinesScreen() {
