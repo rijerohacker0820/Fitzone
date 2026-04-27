@@ -4,12 +4,13 @@ import { BlurView } from 'expo-blur';
 import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
+import { shadows } from '../theme/shadows';
 import { Zap, Smile, Coffee, Check, Trophy, Meh, Activity, BatteryWarning } from 'lucide-react-native';
 
 interface Props {
     visible: boolean;
     onClose: () => void;
-    onSave: (sensation: 'Great' | 'Good' | 'Neutral' | 'Hard' | 'Exhausted', notes: string, imageUri?: string) => void;
+    onSave: (sensation: 'Great' | 'Good' | 'Neutral' | 'Hard' | 'Exhausted', notes: string, imageUri?: string, shareToFeed?: boolean) => void;
 }
 
 import { Camera, Image as ImageIcon, Trash2 } from 'lucide-react-native';
@@ -22,7 +23,7 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
     const [shareToFeed, setShareToFeed] = useState(true);
 
     const handleSave = () => {
-        onSave(sensation, notes, imageUri);
+        onSave(sensation, notes, imageUri, shareToFeed);
     };
 
     const takePhoto = async () => {
@@ -78,12 +79,12 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
 
     return (
         <Modal visible={visible} transparent animationType="fade">
-            <BlurView intensity={80} tint={colors.background === '#0F172A' ? 'dark' : 'light'} style={styles.overlay}>
+            <BlurView intensity={80} tint="dark" style={styles.overlay}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                     style={{ width: '100%', alignItems: 'center' }}
                 >
-                    <Animated.View 
+                    <Animated.View
                         entering={FadeInUp.duration(600).springify()}
                         style={[styles.content, { backgroundColor: colors.card }]}
                     >
@@ -102,7 +103,7 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
 
                         <Text style={[styles.label, { color: colors.textSecondary }]}>Notas (Opcional)</Text>
                         <TextInput
-                            style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: '#E2E8F0' }]}
+                            style={[styles.input, { backgroundColor: colors.background, color: colors.text, borderColor: colors.background }]}
                             placeholder="¿Cómo te sentiste?"
                             placeholderTextColor={colors.textSecondary}
                             multiline
@@ -126,14 +127,14 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                             <View style={styles.photoActions}>
                                 <TouchableOpacity
                                     onPress={takePhoto}
-                                    style={[styles.photoButton, { backgroundColor: colors.background, borderColor: '#E2E8F0' }]}
+                                    style={[styles.photoButton, { backgroundColor: colors.background, borderColor: colors.background }]}
                                 >
                                     <Camera size={24} color={colors.primary} />
                                     <Text style={[styles.photoButtonText, { color: colors.text }]}>Foto</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity
                                     onPress={pickImage}
-                                    style={[styles.photoButton, { backgroundColor: colors.background, borderColor: '#E2E8F0' }]}
+                                    style={[styles.photoButton, { backgroundColor: colors.background, borderColor: colors.background }]}
                                 >
                                     <ImageIcon size={24} color={colors.primary} />
                                     <Text style={[styles.photoButtonText, { color: colors.text }]}>Librería</Text>
@@ -180,18 +181,7 @@ const styles = StyleSheet.create({
         width: '100%',
         borderRadius: 24,
         padding: 24,
-        ...Platform.select({
-            web: {
-                boxShadow: '0px 10px 20px rgba(0,0,0,0.1)'
-            } as any,
-            default: {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 10 },
-                shadowOpacity: 0.1,
-                shadowRadius: 20,
-                elevation: 10
-            }
-        })
+        ...shadows.premium
     },
     title: {
         fontSize: 24,
@@ -221,7 +211,7 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: 'transparent',
     },
     sensationLabel: {
         fontSize: 10,
@@ -272,7 +262,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         marginBottom: 32,
         borderWidth: 1,
-        borderColor: '#E2E8F0',
+        borderColor: 'transparent',
     },
     previewImage: {
         width: '100%',
