@@ -17,3 +17,4 @@ export { default as FriendsScreen } from "./FriendsScreen";
 export { default as CreatePostScreen } from "./CreatePostScreen";
 export { default as StatsScreen } from "./StatsScreen";
 export { default as SplashScreen } from "./SplashScreen";
+export { default as NotificationsScreen } from "./NotificationsScreen";

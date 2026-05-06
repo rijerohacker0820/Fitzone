@@ -150,3 +150,18 @@ export const getUserGroups = async (): Promise<Group[]> => {
     return [];
   }
 };
+
+// ─── Group Requests ────────────────────────────────────
+
+export const requestJoinGroup = async (groupId: string): Promise<void> => {
+  await apiClient.post(`/groups/${groupId}/request-join`);
+};
+
+export const approveGroupRequest = async (groupId: string, userId: string): Promise<void> => {
+  await apiClient.post(`/groups/${groupId}/approve-request`, { userId });
+};
+
+export const getGroupRequests = async (groupId: string): Promise<any[]> => {
+  const response = await apiClient.get(`/groups/${groupId}/requests`);
+  return response.data;
+};

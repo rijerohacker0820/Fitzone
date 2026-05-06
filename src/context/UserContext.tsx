@@ -14,6 +14,7 @@ import {
   LoginResponse,
 } from "../services/authService";
 import { saveUserProfile, getUserProfile } from "../services/storage";
+import { updateProfile as apiUpdateProfile } from "../services/userService";
 import { useLanguage } from "./LanguageContext";
 import { useTheme } from "./ThemeContext";
 
@@ -137,9 +138,19 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     const newUser = { ...user, ...updates };
     setUser(newUser);
     try {
-      await saveUserProfile(newUser);
+      await saveUserProfile(newUser); // Save locally for cache
+      
+      // Sync with backend API
+      const backendUpdates: any = {};
+      if (updates.name !== undefined) backendUpdates.fullName = updates.name;
+      if (updates.bio !== undefined) backendUpdates.bio = updates.bio;
+      if (updates.profileImage !== undefined || updates.avatarUrl !== undefined) {
+        backendUpdates.avatarUrl = updates.profileImage || updates.avatarUrl;
+      }
+      
+      await apiUpdateProfile(backendUpdates);
     } catch (e) {
-      console.error("[UserContext] Failed to save user profile:", e);
+      console.error("[UserContext] Failed to save user profile to backend:", e);
     }
   };
 

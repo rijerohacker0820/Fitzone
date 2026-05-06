@@ -10,10 +10,12 @@ import {
 } from "react-native";
 import { BlurView } from "expo-blur";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
 import { shadows } from "../theme/shadows";
+import { Bell } from "lucide-react-native";
+import { getUnreadCount } from "../services/notificationService";
 
 const { width } = Dimensions.get("window");
 
@@ -36,6 +38,21 @@ export default function GlobalHeader({
   const navigation = useNavigation<any>();
   const { user } = useUser();
   const { colors } = useTheme();
+  const [unreadCount, setUnreadCount] = React.useState(0);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchUnread = async () => {
+        try {
+          const count = await getUnreadCount();
+          setUnreadCount(count);
+        } catch (error) {
+          console.error("Error fetching unread notifications", error);
+        }
+      };
+      fetchUnread();
+    }, [])
+  );
 
   const handleProfilePress = () => {
     if (onProfilePress) {
@@ -96,7 +113,16 @@ export default function GlobalHeader({
         {rightAction ? (
           <View style={styles.sideRight}>{rightAction}</View>
         ) : showProfile ? (
-          <View style={styles.sideRight}>
+          <View style={[styles.sideRight, { flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 16 }]}>
+            <TouchableOpacity onPress={() => navigation.navigate("Notifications")} style={styles.bellContainer}>
+              <Bell size={24} color={colors.textSecondary} />
+              {unreadCount > 0 && (
+                <View style={[styles.badge, { backgroundColor: colors.primary }]}>
+                  <Text style={styles.badgeText}>{unreadCount > 9 ? "9+" : unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            
             <TouchableOpacity onPress={handleProfilePress} activeOpacity={0.8}>
               <View
                 style={[
@@ -179,5 +205,25 @@ const styles = StyleSheet.create({
   avatarText: {
     fontWeight: "bold",
     fontSize: 14,
+  },
+  bellContainer: {
+    position: "relative",
+    padding: 4,
+  },
+  badge: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: "#FFF",
+    fontSize: 10,
+    fontWeight: "bold",
   },
 });

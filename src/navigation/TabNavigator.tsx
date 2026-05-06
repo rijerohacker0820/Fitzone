@@ -26,7 +26,7 @@ export default function TabNavigator() {
   const { t } = useLanguage();
   const insets = useSafeAreaInsets();
 
-  const isDark = colors.background !== "#F8FAFC";
+  const isDark = true; // Premium Fitzone is always dark theme
   const TAB_HEIGHT = 60 + insets.bottom;
 
   return (
@@ -34,8 +34,8 @@ export default function TabNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: isDark ? "#0F0F0F" : "#FFFFFF",
-          borderTopColor: isDark ? "#1A1A1A" : "#F1F5F9",
+          backgroundColor: colors.background,
+          borderTopColor: colors.border + "30",
           borderTopWidth: 1,
           height: TAB_HEIGHT,
           paddingBottom: insets.bottom + 10,
@@ -51,7 +51,7 @@ export default function TabNavigator() {
               }),
         },
         tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: isDark ? "#555" : "#94A3B8",
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",

@@ -15,6 +15,8 @@ import {
   Modal,
   Dimensions,
   ImageBackground,
+  Share,
+  ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import {
@@ -33,8 +35,11 @@ import { useLanguage } from "../context/LanguageContext";
 import { getFeed, toggleLike, addComment } from "../services/socialService";
 import { Post, PostComment } from "../types";
 import { SPACING, RADIUS, BRAND } from "../theme/colors";
-import { useNavigation } from "@react-navigation/native";
-import { getImageUrl, getAvatarUrl } from "../api/apiClient";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
+import { getAvatarUrl, getImageUrl } from "../api/apiClient";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../navigation/types";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 const AVATAR_SIZE = 42;
@@ -44,7 +49,8 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
   const { user } = useUser();
   const { showToast } = useToast();
   const { t } = useLanguage();
-  const navigation = useNavigation<any>();
+  const insets = useSafeAreaInsets();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,10 +178,22 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
     return date.toLocaleDateString();
   };
 
+  const handleShare = async (item: Post) => {
+    try {
+      const message = `Mira este post de ${item.userFullName} en Fitzone:\n${item.content || "Entrenamiento increíble"}`;
+      await Share.share({
+        message,
+      });
+    } catch (error: any) {
+      showToast("Error al compartir", "error");
+    }
+  };
+
   const isDark = colors.background !== "#F8FAFC";
 
   const renderPost = ({ item }: { item: Post }) => {
     const hasImage = !!item.imageUrl;
+    const CARD_WIDTH = width - SPACING.md * 2;
 
     return (
       <Animated.View
@@ -189,63 +207,106 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
         ]}
       >
         {hasImage ? (
-          <ImageBackground
-            source={{ uri: getImageUrl(item.imageUrl) }}
-            style={{
-              width: "100%",
-              minHeight: 400,
-              justifyContent: "space-between",
-            }}
-          >
-            <LinearGradient
-              colors={["rgba(0,0,0,0.5)", "transparent", "rgba(0,0,0,0.8)"]}
-              style={StyleSheet.absoluteFill}
-            />
-
-            {/* Header overlaid */}
-            <View style={styles.postHeader}>
-              <View style={styles.userRow}>
-                <Image
-                  source={{ uri: getAvatarUrl(item.userAvatarUrl) }}
-                  style={[styles.avatar, { borderColor: BRAND.orange }]}
+          <View style={{ width: "100%", minHeight: 450, backgroundColor: "#000", overflow: "hidden", borderRadius: 16 }}>
+            <ScrollView 
+              horizontal 
+              pagingEnabled 
+              showsHorizontalScrollIndicator={false} 
+              style={{ flex: 1 }}
+            >
+              {/* Slide 1: Photo */}
+              <ImageBackground
+                source={{ uri: getImageUrl(item.imageUrl) }}
+                style={{
+                  width: CARD_WIDTH,
+                  height: 450,
+                  justifyContent: "space-between",
+                }}
+              >
+                <LinearGradient
+                  colors={["rgba(0,0,0,0.5)", "transparent", "rgba(0,0,0,0.8)"]}
+                  style={StyleSheet.absoluteFill}
                 />
-                <View style={styles.userInfo}>
-                  <Text style={[styles.userName, { color: "#FFF" }]}>
-                    {item.userFullName}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.postTime,
-                      { color: "rgba(255,255,255,0.7)" },
-                    ]}
-                  >
-                    {formatTime(item.createdAt)}
-                  </Text>
-                </View>
-              </View>
-              {item.type !== "Text" && (
-                <View
-                  style={[
-                    styles.typeBadge,
-                    { backgroundColor: "rgba(255,255,255,0.2)" },
-                  ]}
-                >
-                  <Text style={[styles.typeBadgeText, { color: "#FFF" }]}>
-                    {item.type}
-                  </Text>
+              </ImageBackground>
+
+              {/* Slide 2: Workout Summary (if available) */}
+              {item.workoutSummary && (
+                <View style={{ 
+                  width: CARD_WIDTH, 
+                  height: 450, 
+                  backgroundColor: colors.card,
+                  justifyContent: "center",
+                  padding: 20 
+                }}>
+                  <View style={[styles.workoutCard, { backgroundColor: isDark ? "#1A1A2E" : "#F0F4FF", borderWidth: 0 }]}>
+                    <View style={styles.workoutCardHeader}>
+                      <Text style={styles.workoutEmoji}>🏋️</Text>
+                      <Text style={[styles.workoutName, { color: colors.text }]}>{item.workoutSummary.name}</Text>
+                    </View>
+                    <View style={styles.workoutStats}>
+                      <View style={styles.workoutStat}>
+                        <Text style={[styles.workoutStatValue, { color: colors.primary }]}>
+                          {Math.round((item.workoutSummary.durationSeconds ?? 0) / 60)}
+                        </Text>
+                        <Text style={[styles.workoutStatLabel, { color: colors.textSecondary }]}>min</Text>
+                      </View>
+                      <View style={[styles.workoutDivider, { backgroundColor: colors.border }]} />
+                      <View style={styles.workoutStat}>
+                        <Text style={[styles.workoutStatValue, { color: colors.primary }]}>{item.workoutSummary.exerciseCount ?? 0}</Text>
+                        <Text style={[styles.workoutStatLabel, { color: colors.textSecondary }]}>ejercicios</Text>
+                      </View>
+                    </View>
+                  </View>
                 </View>
               )}
+            </ScrollView>
+
+            {/* Absolute Overlaid Content (Always visible on top of slides) */}
+            <View style={{ position: "absolute", top: 0, left: 0, right: 0 }}>
+              {/* Header */}
+              <View style={[styles.postHeader, { padding: 16 }]}>
+                <View style={styles.userRow}>
+                  <Image
+                    source={{ uri: getAvatarUrl(item.userAvatarUrl) }}
+                    style={[styles.avatar, { borderColor: BRAND.primary }]}
+                  />
+                  <View style={styles.userInfo}>
+                    <Text style={[styles.userName, { color: "#FFF", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }]}>
+                      {item.userFullName}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.postTime,
+                        { color: "rgba(255,255,255,0.9)", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+                      ]}
+                    >
+                      {formatTime(item.createdAt)}
+                    </Text>
+                  </View>
+                </View>
+                {item.type !== "Text" && (
+                  <View
+                    style={[
+                      styles.typeBadge,
+                      { backgroundColor: "rgba(255,255,255,0.2)" },
+                    ]}
+                  >
+                    <Text style={[styles.typeBadgeText, { color: "#FFF" }]}>
+                      {item.type}
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
 
-            {/* Bottom overlaid content */}
-            <View style={{ paddingBottom: SPACING.md }}>
+            <View style={{ position: "absolute", bottom: 0, left: 0, right: 0, paddingBottom: SPACING.md }}>
               {item.content ? (
                 <Text
                   style={[
                     styles.postContent,
                     {
                       color: "#FFF",
-                      textShadowColor: "rgba(0,0,0,0.5)",
+                      textShadowColor: "rgba(0,0,0,0.8)",
                       textShadowOffset: { width: 0, height: 1 },
                       textShadowRadius: 3,
                     },
@@ -265,8 +326,9 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
                     size={26}
                     color={item.isLikedByCurrentUser ? "#FF2E4D" : "#FFF"}
                     fill={item.isLikedByCurrentUser ? "#FF2E4D" : "none"}
+                    style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.5, shadowRadius: 2 }}
                   />
-                  <Text style={[styles.actionCount, { color: "#FFF" }]}>
+                  <Text style={[styles.actionCount, { color: "#FFF", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }]}>
                     {item.likeCount}
                   </Text>
                 </TouchableOpacity>
@@ -275,13 +337,13 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
                   onPress={() => setCommentModal(item)}
                   activeOpacity={0.7}
                 >
-                  <MessageCircle size={26} color="#FFF" />
-                  <Text style={[styles.actionCount, { color: "#FFF" }]}>
+                  <MessageCircle size={26} color="#FFF" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.5, shadowRadius: 2 }} />
+                  <Text style={[styles.actionCount, { color: "#FFF", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }]}>
                     {item.commentCount}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
-                  <Share2 size={24} color="#FFF" />
+                <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={() => handleShare(item)}>
+                  <Share2 size={24} color="#FFF" style={{ shadowColor: "#000", shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.5, shadowRadius: 2 }} />
                 </TouchableOpacity>
               </View>
 
@@ -289,13 +351,13 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
                 <View style={{ paddingHorizontal: SPACING.md }}>
                   {(item?.recentComments ?? []).slice(0, 2).map((c) => (
                     <View key={c.id} style={styles.commentRow}>
-                      <Text style={[styles.commentAuthor, { color: "#FFF" }]}>
+                      <Text style={[styles.commentAuthor, { color: "#FFF", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 }]}>
                         {c.userFullName}
                       </Text>
                       <Text
                         style={[
                           styles.commentText,
-                          { color: "rgba(255,255,255,0.8)" },
+                          { color: "rgba(255,255,255,0.9)", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
                         ]}
                         numberOfLines={1}
                       >
@@ -308,7 +370,7 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
                       <Text
                         style={[
                           styles.viewAllComments,
-                          { color: "rgba(255,255,255,0.6)" },
+                          { color: "rgba(255,255,255,0.8)", textShadowColor: "rgba(0,0,0,0.8)", textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
                         ]}
                       >
                         Ver los {item.commentCount} comentarios
@@ -318,7 +380,7 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
                 </View>
               )}
             </View>
-          </ImageBackground>
+          </View>
         ) : (
           <View>
             {/* Header */}
@@ -490,7 +552,7 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.actionBtn} activeOpacity={0.7} onPress={() => handleShare(item)}>
                 <Share2 size={20} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
@@ -619,8 +681,36 @@ export default function FeedScreen({ hideHeader = false }: { hideHeader?: boolea
             ) : null
           }
           showsVerticalScrollIndicator={false}
+          nestedScrollEnabled={true}
+          removeClippedSubviews={Platform.OS === "android"}
+          maxToRenderPerBatch={5}
+          windowSize={7}
+          initialNumToRender={5}
         />
       )}
+
+      {/* Create Post FAB */}
+      <TouchableOpacity
+        style={{
+          position: "absolute",
+          bottom: 24,
+          right: 24,
+          width: 56,
+          height: 56,
+          borderRadius: 28,
+          backgroundColor: colors.primary,
+          justifyContent: "center",
+          alignItems: "center",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 6,
+          elevation: 8,
+        }}
+        onPress={() => navigation.navigate("CreatePost")}
+      >
+        <Text style={{ fontSize: 24, color: "#FFF", fontWeight: "bold" }}>+</Text>
+      </TouchableOpacity>
 
       {/* Comment Modal */}
       <Modal visible={!!commentModal} animationType="slide" transparent>

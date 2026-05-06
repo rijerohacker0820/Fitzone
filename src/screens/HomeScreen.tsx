@@ -15,9 +15,9 @@ import { useLanguage } from "../context/LanguageContext";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useUser } from "../context/UserContext";
 import { RootStackParamList } from "../navigation/types";
-import ACWRChart from "../components/ACWRChart";
+import PerformanceChart from "../components/ACWRChart";
 import GlobalHeader from "../components/GlobalHeader";
-import { ACWRData, WorkoutRoutine } from "../types";
+import { WorkoutRoutine } from "../types";
 import { getWorkoutLogs, saveRoutine, getRoutines } from "../services/storage";
 import { Zap, Dumbbell, X, ChevronRight } from "lucide-react-native";
 import StreakCard from "../components/StreakCard";
@@ -38,7 +38,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<any>();
   const { squads } = useSquads();
   const insets = useSafeAreaInsets();
-  const [acwrData, setAcwrData] = useState<ACWRData[]>([]);
+
   const [recentLogs, setRecentLogs] = useState<WorkoutRoutine[]>([]);
   const [allRoutines, setAllRoutines] = useState<WorkoutRoutine[]>([]);
   const [fabMenuVisible, setFabMenuVisible] = useState(false);
@@ -53,20 +53,6 @@ export default function HomeScreen() {
   );
 
   const loadData = async () => {
-    const mockData: ACWRData[] = [];
-    const today = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      mockData.push({
-        date: d.toISOString(),
-        acuteLoad: 0,
-        chronicLoad: 0,
-        ratio: 0.8 + Math.random() * 0.7,
-        status: "Optimal",
-      });
-    }
-    setAcwrData(mockData);
 
     const logs = await getWorkoutLogs();
     logs.sort(
@@ -177,7 +163,7 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        <ACWRChart data={acwrData} />
+        <PerformanceChart />
         <ActionButtons
           onLogPress={() => setFabMenuVisible(true)}
           onSchedulePress={handleSchedulePress}

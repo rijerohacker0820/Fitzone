@@ -18,7 +18,7 @@ export const getImageUrl = (path?: string | null): string => {
   ) {
     return path;
   }
-  
+
   const serverUrl = BASE_URL.replace(/\/api\/?$/, "");
   const cleanPath = path.replace(/^\/+/, "");
   return `${serverUrl}/${cleanPath}`;
@@ -45,29 +45,31 @@ const apiClient = axios.create({
 /**
  * Request interceptor:
  * - Adds Authorization header from secure storage
+ * - Sets Content-Type to JSON for non-FormData requests
  * - Cleans payload: removes undefined/null values before sending
  */
 apiClient.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
+    // 1. Auth token
     try {
       const token = await storage.getItem("auth_token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-
-      // Default to JSON if not specified and not FormData
-      if (!config.headers["Content-Type"] && !(config.data instanceof FormData)) {
-        config.headers["Content-Type"] = "application/json";
-      }
     } catch (error) {
       console.error("[apiClient] Error retrieving token:", error);
     }
 
-    // Clean payload — never send undefined or null fields
+    // 2. Default Content-Type to JSON if not present
+    if (!config.headers["Content-Type"]) {
+      config.headers["Content-Type"] = "application/json";
+    }
+
+    // 3. Clean payload — remove undefined/null fields
     if (
       config.data &&
       typeof config.data === "object" &&
-      !(config.data instanceof FormData)
+      !Array.isArray(config.data)
     ) {
       config.data = Object.fromEntries(
         Object.entries(config.data).filter(
@@ -76,6 +78,7 @@ apiClient.interceptors.request.use(
       );
     }
 
+    console.log(`[API] Request: ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error: AxiosError) => {
@@ -91,6 +94,7 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    console.log(`[API] Response: ${response.config.method?.toUpperCase()} ${response.config.url} [${response.status}]`);
     // If backend wraps response in { success, data }, unwrap it
     const body = response.data;
     if (body && typeof body === "object" && "success" in body) {
@@ -104,7 +108,13 @@ apiClient.interceptors.response.use(
     return response;
   },
   async (error: AxiosError) => {
+    const url = error.config?.url || "unknown";
+    const method = error.config?.method?.toUpperCase() || "?";
+    console.log(`[API ERROR]: ${method} ${url}`, error.message);
+
     if (error.response) {
+      console.log(`[API ERROR RESPONSE]:`, error.response.status, error.response.data);
+
       // 401 — token expired or invalid → auto-logout
       if (error.response.status === 401) {
         await storage.removeItem("auth_token");
@@ -132,7 +142,7 @@ apiClient.interceptors.response.use(
     }
 
     return Promise.reject(
-      new Error("Sin conexión al servidor. Verifica tu internet."),
+      new Error("Servidor no disponible"),
     );
   },
 );

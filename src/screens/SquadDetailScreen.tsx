@@ -13,6 +13,8 @@ import {
   Alert,
   Pressable,
   FlatList,
+  RefreshControl,
+  ActivityIndicator,
 } from "react-native";
 import AnimatedReanimated, {
   FadeInLeft,
@@ -80,6 +82,7 @@ interface ChatMessage {
   sets?: number;
   reps?: number;
   imageUrl?: string;
+  isSending?: boolean;
 }
 
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -119,24 +122,35 @@ export default function SquadDetailScreen() {
     }
   }, [squad]);
 
+  const [chatConnected, setChatConnected] = useState(false);
+  const [pendingShareRoutine, setPendingShareRoutine] = useState<any>(null);
+
   // Handle shared routine from other screens
   useEffect(() => {
     if (route.params?.shareRoutine) {
-      const routine = route.params.shareRoutine;
+      setPendingShareRoutine(route.params.shareRoutine);
+      setActiveTab("Chat");
+      navigation.setParams({ shareRoutine: undefined });
+    }
+  }, [route.params?.shareRoutine]);
 
+  // Send pending routine once chat is connected
+  useEffect(() => {
+    if (chatConnected && pendingShareRoutine) {
+      const routine = pendingShareRoutine;
       chatService.sendMessage(squadId, {
         text: "",
         type: "routine",
         routineId: routine.id,
         routineName: routine.name,
+        exercises: routine.exercises,
+      }).then(() => {
+        setPendingShareRoutine(null);
+      }).catch((e) => {
+        Alert.alert("Error", "Could not share routine.");
       });
-
-      setActiveTab("Chat");
-
-      // Clear the param effectively by not reacting to it again
-      navigation.setParams({ shareRoutine: undefined });
     }
-  }, [route.params?.shareRoutine]);
+  }, [chatConnected, pendingShareRoutine]);
 
   // User State - accessing global user state directly in members useMemo
 
@@ -190,6 +204,22 @@ export default function SquadDetailScreen() {
   }, [squadId]);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isRefreshingChat, setIsRefreshingChat] = useState(false);
+  const flatListRef = React.useRef<FlatList>(null);
+
+  const onRefreshChat = async () => {
+    setIsRefreshingChat(true);
+    try {
+      const history = await chatService.getMessageHistory(squadId);
+      const parsedHistory = history.map(parseMessageDto);
+      setMessages(parsedHistory);
+    } catch (e) {
+      console.log("Error refreshing chat", e);
+    } finally {
+      setIsRefreshingChat(false);
+    }
+  };
 
   const parseMessageDto = (dto: ChatMessageDto): ChatMessage => {
     let text = dto.content;
@@ -247,6 +277,7 @@ export default function SquadDetailScreen() {
           const newMsg = parseMessageDto(newMsgDto);
           if (isMounted) setMessages((prev) => [...prev, newMsg]);
         });
+        if (isMounted) setChatConnected(true);
       } catch (error) {
         Alert.alert(
           "Error starting chat",
@@ -261,6 +292,7 @@ export default function SquadDetailScreen() {
 
     return () => {
       isMounted = false;
+      setChatConnected(false);
       chatService.disconnect();
     };
   }, [squadId, activeTab]);
@@ -289,19 +321,79 @@ export default function SquadDetailScreen() {
     setAttachmentMenuVisible(false);
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: ['images'],
         allowsEditing: true,
         quality: 0.5,
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
         const localUri = result.assets[0].uri;
+        
+        // Optimistic UI
+        const tempId = "temp-" + Date.now();
+        setMessages((prev) => [...prev, {
+          id: tempId,
+          senderId: user?.id || "",
+          text: "",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          type: "image",
+          imageUrl: localUri,
+          isSending: true,
+        }]);
+
         const uploadedUrl = await uploadImage(localUri);
         await chatService.sendMessage(squadId, {
           text: "",
           type: "image",
           imageUrl: uploadedUrl,
         });
+
+        // Remove temp message (real message comes via SignalR)
+        setMessages((prev) => prev.filter(m => m.id !== tempId));
+      }
+    } catch (e: any) {
+      showToast("Error al enviar imagen", "error");
+    }
+  };
+
+  const handleTakeChatImage = async () => {
+    setAttachmentMenuVisible(false);
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permissionResult.granted) {
+        Alert.alert(t("permissionRequired") || "Permiso requerido", t("cameraPermissionMsg") || "Se requiere acceso a la cámara.");
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        quality: 0.5,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const localUri = result.assets[0].uri;
+        
+        // Optimistic UI
+        const tempId = "temp-" + Date.now();
+        setMessages((prev) => [...prev, {
+          id: tempId,
+          senderId: user?.id || "",
+          text: "",
+          timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          type: "image",
+          imageUrl: localUri,
+          isSending: true,
+        }]);
+
+        const uploadedUrl = await uploadImage(localUri);
+        await chatService.sendMessage(squadId, {
+          text: "",
+          type: "image",
+          imageUrl: uploadedUrl,
+        });
+
+        // Remove temp message
+        setMessages((prev) => prev.filter(m => m.id !== tempId));
       }
     } catch (e: any) {
       showToast("Error al enviar imagen", "error");
@@ -418,7 +510,7 @@ export default function SquadDetailScreen() {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
@@ -438,6 +530,7 @@ export default function SquadDetailScreen() {
     }
 
     const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
@@ -1277,11 +1370,40 @@ export default function SquadDetailScreen() {
             keyboardVerticalOffset={Platform.OS === "ios" ? 90 : 0}
             style={{ flex: 1 }}
           >
+            {/* Search Bar for Chat */}
+            <View style={{ marginBottom: 8 }}>
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder={t("searchMessages") || "Buscar mensajes..."}
+                placeholderTextColor={colors.textSecondary}
+                style={{
+                  backgroundColor: colors.card,
+                  color: colors.text,
+                  padding: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "transparent",
+                  fontSize: 14,
+                }}
+              />
+            </View>
+
             <FlatList<ChatMessage>
-              data={messages}
+              ref={flatListRef}
+              data={messages.filter(m => !searchQuery || m.text.toLowerCase().includes(searchQuery.toLowerCase()) || m.senderName?.toLowerCase().includes(searchQuery.toLowerCase()))}
               keyExtractor={(item) => item.id}
               contentContainerStyle={{ paddingBottom: 16, paddingTop: 16 }}
               showsVerticalScrollIndicator={false}
+              onContentSizeChange={() => {
+                if (messages.length > 0) flatListRef.current?.scrollToEnd({ animated: true });
+              }}
+              onLayout={() => {
+                if (messages.length > 0) flatListRef.current?.scrollToEnd({ animated: false });
+              }}
+              refreshControl={
+                <RefreshControl refreshing={isRefreshingChat} onRefresh={onRefreshChat} tintColor={colors.primary} />
+              }
               renderItem={({ item: msg }) => {
                 const isMe = msg.senderId === user?.id; // Fixed sender comparison against real user
                 const senderName = msg.senderName || "Squad Member";
@@ -1332,6 +1454,7 @@ export default function SquadDetailScreen() {
                         shadowOpacity: 0.05,
                         shadowRadius: 2,
                         elevation: 1,
+                        opacity: msg.isSending ? 0.6 : 1,
                       }}
                     >
                       {!isMe && (
@@ -1608,6 +1731,13 @@ export default function SquadDetailScreen() {
               {t("shareContent") || "Compartir Contenido"}
             </Text>
             
+            <TouchableOpacity
+              style={{ backgroundColor: colors.background, padding: 16, borderRadius: 12, marginBottom: 12, alignItems: "center" }}
+              onPress={handleTakeChatImage}
+            >
+              <Text style={{ color: colors.primary, fontWeight: "bold", fontSize: 16 }}>Tomar Foto</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity
               style={{ backgroundColor: colors.background, padding: 16, borderRadius: 12, marginBottom: 12, alignItems: "center" }}
               onPress={handlePickChatImage}

@@ -25,7 +25,7 @@ import {
   Dumbbell,
 } from "lucide-react-native";
 import * as Crypto from "expo-crypto";
-import { generateWorkout } from "../services/gemini";
+import { generateWorkoutWithAI } from "../services/aiService";
 import SetRepSelectionModal from "./SetRepSelectionModal";
 import { customAlert } from "../utils/alert";
 
@@ -235,7 +235,7 @@ export default function ManualWorkoutModal({
     }
     setLoading(true);
     try {
-      const routine = await generateWorkout(goal, equipment, experience);
+      const routine = await generateWorkoutWithAI(goal, equipment, experience);
       if (routine) {
         setName(routine.name);
         setExercises(routine.exercises);
@@ -295,15 +295,15 @@ export default function ManualWorkoutModal({
       animationType="slide"
       presentationStyle="pageSheet"
     >
-      <View style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <Image source={LOGO_IMG} style={styles.logo} resizeMode="contain" />
-            <Text style={styles.headerTitle}>Crear Rutina</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Crear Rutina</Text>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X color="#94A3B8" size={24} />
+            <X color={colors.textSecondary} size={24} />
           </TouchableOpacity>
         </View>
 
@@ -367,13 +367,13 @@ export default function ManualWorkoutModal({
                   style={{ marginRight: 10 }}
                 />
                 <Text
-                  style={{ fontSize: 20, fontWeight: "bold", color: "#0F172A" }}
+                  style={{ fontSize: 20, fontWeight: "bold", color: colors.text }}
                 >
                   Preguntar a IA
                 </Text>
               </View>
 
-              <Text style={styles.inputLabel}>Tu Objetivo</Text>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Tu Objetivo</Text>
               <TextInput
                 style={styles.input}
                 placeholder="e.g. Build massive chest"
@@ -384,7 +384,7 @@ export default function ManualWorkoutModal({
 
               <View style={{ flexDirection: "row", gap: 16 }}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Experiencia</Text>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Experiencia</Text>
                   <TouchableOpacity
                     style={styles.pseudoPicker}
                     onPress={showExperienceSelector}
@@ -398,7 +398,7 @@ export default function ManualWorkoutModal({
                   </TouchableOpacity>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.inputLabel}>Equipamiento</Text>
+                  <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Equipamiento</Text>
                   <TouchableOpacity
                     style={styles.pseudoPicker}
                     onPress={showEquipmentSelector}
@@ -439,9 +439,9 @@ export default function ManualWorkoutModal({
           ) : (
             <>
               {/* Routine Name */}
-              <Text style={styles.inputLabel}>Nombre de la Rutina</Text>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Nombre de la Rutina</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border + '30' }]}
                 placeholder="e.g. Monday Chest Day"
                 placeholderTextColor="#CBD5E1"
                 value={name}
@@ -449,9 +449,9 @@ export default function ManualWorkoutModal({
               />
 
               {/* Description */}
-              <Text style={styles.inputLabel}>Descripción</Text>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Descripción</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, styles.textArea, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border + '30' }]}
                 placeholder="Brief description..."
                 placeholderTextColor="#CBD5E1"
                 multiline
@@ -461,9 +461,9 @@ export default function ManualWorkoutModal({
               />
 
               {/* Tags */}
-              <Text style={styles.inputLabel}>Etiquetas</Text>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Etiquetas</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.card, color: colors.text, borderColor: colors.border + '30' }]}
                 placeholder="Comma separated"
                 placeholderTextColor="#CBD5E1"
                 value={tags}
@@ -471,15 +471,15 @@ export default function ManualWorkoutModal({
               />
 
               {/* Quick Add Exercises */}
-              <Text style={styles.inputLabel}>Agregar Ejercicios Rápidos</Text>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Agregar Ejercicios Rápidos</Text>
               <View style={styles.chipContainer}>
                 {QUICK_EXERCISES.map((ex) => (
                   <TouchableOpacity
                     key={ex}
-                    style={styles.chip}
+                    style={[styles.chip, { backgroundColor: colors.card, borderColor: colors.border + '30' }]}
                     onPress={() => handleQuickAdd(ex)}
                   >
-                    <Text style={styles.chipText}>+ {ex}</Text>
+                    <Text style={[styles.chipText, { color: colors.textSecondary }]}>+ {ex}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -505,7 +505,7 @@ export default function ManualWorkoutModal({
                 >
                   <View
                     style={{
-                      backgroundColor: "#F1F5F9",
+                      backgroundColor: "#1a45b830",
                       width: 32,
                       height: 32,
                       borderRadius: 16,
@@ -514,7 +514,7 @@ export default function ManualWorkoutModal({
                       marginRight: 12,
                     }}
                   >
-                    <Text style={{ color: "#64748B", fontWeight: "bold" }}>
+                    <Text style={{ color: "#49b8bf", fontWeight: "bold" }}>
                       {index + 1}
                     </Text>
                   </View>
@@ -560,7 +560,7 @@ export default function ManualWorkoutModal({
         />
 
         {/* Footer Action */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { backgroundColor: colors.background, borderTopColor: colors.border + '20' }]}>
           <View style={{ flexDirection: "row", gap: 12 }}>
             {initialRoutine && (
               <TouchableOpacity
@@ -636,12 +636,12 @@ const styles = StyleSheet.create({
   },
   toggleContainer: {
     flexDirection: "row",
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#0a1a3a",
     borderRadius: 12,
     padding: 4,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#1a45b830",
   },
   toggleButton: {
     flex: 1,
@@ -652,7 +652,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   activeToggle: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#1a45b830",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -681,13 +681,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   input: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#0a1a3a",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#1a45b830",
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
-    color: "#0F172A",
+    color: "#ffffff",
     marginBottom: 20,
   },
   textArea: {
@@ -700,9 +700,9 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   chip: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#0a1a3a",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#1a45b830",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: "#1a45b820",
     marginBottom: 16,
   },
   sequenceTitle: {
@@ -743,11 +743,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
+    borderBottomColor: "#1a45b820",
   },
   exerciseText: {
     fontSize: 16,
-    color: "#334155",
+    color: "#ffffff",
     fontWeight: "500",
   },
   footer: {
@@ -757,9 +757,9 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#050f2a",
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: "#1a45b820",
   },
   primaryButton: {
     backgroundColor: "#2563EB",
@@ -775,26 +775,26 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   aiCard: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#0a1a3a",
     borderRadius: 24,
     padding: 24,
     borderWidth: 1,
-    borderColor: "#F1F5F9",
+    borderColor: "#1a45b830",
     marginBottom: 24,
   },
   pseudoPicker: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#0a1a3a",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
+    borderColor: "#1a45b830",
     borderRadius: 12,
     padding: 16,
   },
   pseudoPickerText: {
     fontSize: 16,
-    color: "#0F172A",
+    color: "#ffffff",
     fontWeight: "500",
   },
 });

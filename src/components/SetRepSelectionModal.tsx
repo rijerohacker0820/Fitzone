@@ -55,33 +55,33 @@ export default function SetRepSelectionModal({
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalContent}
         >
-          <View style={[styles.card, { backgroundColor: "#FFFFFF" }]}>
+          <View style={[styles.card, { backgroundColor: colors.card }]}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.title}>{exerciseName}</Text>
+              <Text style={[styles.title, { color: colors.text }]}>{exerciseName}</Text>
               <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-                <X color="#94A3B8" size={24} />
+                <X color={colors.textSecondary} size={24} />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.subtitle}>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
               Establecer series y repeticiones iniciales
             </Text>
 
             {/* Sets Selector */}
             <View style={styles.selectorRow}>
               <View style={styles.labelCol}>
-                <Text style={styles.label}>Series</Text>
+                <Text style={[styles.label, { color: colors.text }]}>Series</Text>
               </View>
-              <View style={styles.controlCol}>
+              <View style={[styles.controlCol, { backgroundColor: colors.background }]}>
                 <TouchableOpacity
                   onPress={() => setSets(Math.max(1, sets - 1))}
                   style={styles.stepBtn}
                 >
-                  <Minus size={20} color="#64748B" />
+                  <Minus size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   value={sets.toString()}
                   onChangeText={(val) => setSets(parseInt(val) || 1)}
                   keyboardType="numeric"
@@ -90,7 +90,7 @@ export default function SetRepSelectionModal({
                   onPress={() => setSets(sets + 1)}
                   style={styles.stepBtn}
                 >
-                  <Plus size={20} color="#64748B" />
+                  <Plus size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -98,17 +98,17 @@ export default function SetRepSelectionModal({
             {/* Reps Selector */}
             <View style={styles.selectorRow}>
               <View style={styles.labelCol}>
-                <Text style={styles.label}>Repeticiones</Text>
+                <Text style={[styles.label, { color: colors.text }]}>Repeticiones</Text>
               </View>
-              <View style={styles.controlCol}>
+              <View style={[styles.controlCol, { backgroundColor: colors.background }]}>
                 <TouchableOpacity
                   onPress={() => setReps(Math.max(1, reps - 1))}
                   style={styles.stepBtn}
                 >
-                  <Minus size={20} color="#64748B" />
+                  <Minus size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: colors.text }]}
                   value={reps.toString()}
                   onChangeText={(val) => setReps(parseInt(val) || 1)}
                   keyboardType="numeric"
@@ -117,7 +117,7 @@ export default function SetRepSelectionModal({
                   onPress={() => setReps(reps + 1)}
                   style={styles.stepBtn}
                 >
-                  <Plus size={20} color="#64748B" />
+                  <Plus size={20} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -138,7 +138,7 @@ export default function SetRepSelectionModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(5,15,42,0.85)",
     justifyContent: "center",
     padding: 20,
   },
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     padding: 24,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.25,
     shadowRadius: 20,
     elevation: 10,
   },
@@ -163,7 +163,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#0F172A",
     flex: 1,
   },
   closeBtn: {
@@ -171,7 +170,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: "#64748B",
     marginBottom: 24,
   },
   selectorRow: {
@@ -185,12 +183,10 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#1E293B",
   },
   controlCol: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
     borderRadius: 12,
     padding: 4,
   },
@@ -206,7 +202,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     fontSize: 18,
     fontWeight: "bold",
-    color: "#0F172A",
   },
   confirmBtn: {
     height: 56,

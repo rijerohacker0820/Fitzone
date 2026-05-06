@@ -125,7 +125,7 @@ export default function ExerciseSearchModal({
         <View
           style={[
             styles.searchBar,
-            { backgroundColor: colors.card, borderColor: "#E2E8F0" },
+            { backgroundColor: colors.card, borderColor: colors.border + "30" },
           ]}
         >
           <Search
@@ -149,7 +149,7 @@ export default function ExerciseSearchModal({
           keyExtractor={(item) => item}
           renderItem={({ item }) => (
             <TouchableOpacity
-              style={[styles.item, { borderBottomColor: "#F1F5F9" }]}
+              style={[styles.item, { borderBottomColor: colors.border + "20" }]}
               onPress={() => setSelectedExercise(item)}
             >
               <Text style={[styles.itemText, { color: colors.text }]}>
@@ -229,9 +229,9 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 20,
     paddingBottom: 40,
-    backgroundColor: "#FFFFFF", // Solid background
+    backgroundColor: "#050f2a",
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
+    borderTopColor: "#1a45b820",
   },
   doneButton: {
     height: 56,

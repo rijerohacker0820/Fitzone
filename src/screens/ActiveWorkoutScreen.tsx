@@ -335,18 +335,38 @@ export default function ActiveWorkoutScreen({
     finalWorkout.duration = elapsed;
     finalWorkout.status = "completed";
     finalWorkout.date = new Date().toISOString();
-    const newWorkoutId = await saveWorkoutLog(finalWorkout);
-    console.log("Workout saved with ID:", newWorkoutId);
-
     try {
+      const newWorkoutId = await saveWorkoutLog(finalWorkout);
+      console.log("Workout saved with ID:", newWorkoutId);
+
+      if (!newWorkoutId) {
+        throw new Error("Invalid response from server: ID undefined");
+      }
+
       if (shareToFeed) {
-        let uploadedUrl = workoutLog.imageUri;
+        let uploadedUrl = null;
+
         if (workoutLog.imageUri && !workoutLog.imageUri.startsWith("http")) {
-          // uploadImage returns the full URL string directly
-          uploadedUrl = await uploadImage(workoutLog.imageUri);
+          try {
+            uploadedUrl = await uploadImage(workoutLog.imageUri);
+          } catch (uploadError) {
+            console.error("[ActiveWorkout] Upload failed", uploadError);
+            Alert.alert("Error", "Error al subir la imagen. Intenta de nuevo.");
+            return; // No crear post si falla la imagen
+          }
+        } else if (workoutLog.imageUri) {
+          uploadedUrl = workoutLog.imageUri;
         }
 
-        const postContent = `🏆 ${t("finishedWorkout")}: ${activeRoutine.name}${workoutLog.notes ? `\n\n"${workoutLog.notes}"` : ""}`;
+        const exercisesList = workoutLog.exercises
+          .map((ex) => {
+            const validSets = ex.sets.filter((s) => s.status === "completed" || s.status === "partial").length;
+            return validSets > 0 ? `• ${ex.name}: ${validSets} sets` : null;
+          })
+          .filter(Boolean)
+          .join("\n");
+
+        const postContent = `🏆 ${t("finishedWorkout")}: ${activeRoutine.name}${exercisesList ? `\n\n${exercisesList}` : ""}${workoutLog.notes ? `\n\n📝 "${workoutLog.notes}"` : ""}`;
         
         await createPost({
           content: postContent,
@@ -355,13 +375,23 @@ export default function ActiveWorkoutScreen({
           imageUrl: uploadedUrl,
         });
       }
+      
+      customAlert(t("workoutFinished"), t("greatJob"), [
+        { 
+          text: t("done"), 
+          onPress: () => {
+            if (shareToFeed) {
+              navigation.navigate("MainTabs", { screen: "Social" });
+            } else {
+              onFinish();
+            }
+          } 
+        },
+      ]);
     } catch (postError) {
-      console.error("[ActiveWorkout] Failed to share workout to feed", postError);
+      console.error("[ActiveWorkout] Failed to save or share workout", postError);
+      Alert.alert("Error", "Error al guardar entrenamiento");
     }
-
-    customAlert(t("workoutFinished"), t("greatJob"), [
-      { text: t("done"), onPress: onFinish },
-    ]);
   };
 
   const handleCancel = () => {
@@ -380,15 +410,17 @@ export default function ActiveWorkoutScreen({
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {showCountdown && (
-        <Animated.View style={{ ...StyleSheet.absoluteFillObject, zIndex: 999, backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center", opacity: overlayOpacity }}>
-          <View style={{ width: 200, height: 200, borderRadius: 100, borderWidth: 3, borderColor: colors.primary + "15", position: "absolute" }} />
-          <View style={{ width: 280, height: 280, borderRadius: 140, borderWidth: 2, borderColor: colors.primary + "08", position: "absolute" }} />
-          <Animated.View style={{ width: 160, height: 160, borderRadius: 80, backgroundColor: colors.primary + "20", borderWidth: 4, borderColor: colors.primary, alignItems: "center", justifyContent: "center", transform: [{ scale: countdownScale }], opacity: countdownOpacity, shadowColor: colors.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 30, elevation: 20 }}>
-            <Text style={{ color: "#FFFFFF", fontSize: countdownValue > 0 ? 72 : 36, fontWeight: "900", letterSpacing: countdownValue > 0 ? 0 : 2, textTransform: "uppercase" }}>
-              {countdownValue > 0 ? countdownValue : t("getReady")}
-            </Text>
-          </Animated.View>
-          <Text style={{ color: "#94A3B8", fontSize: 16, fontWeight: "600", marginTop: 48, letterSpacing: 1, textTransform: "uppercase" }}>
+        <Animated.View style={{ ...StyleSheet.absoluteFillObject, flex: 1, zIndex: 999, backgroundColor: "#0F172A", alignItems: "center", justifyContent: "center", opacity: overlayOpacity }}>
+          <View style={{ position: "relative", alignItems: "center", justifyContent: "center", height: 280, width: 280 }}>
+            <View style={{ width: 200, height: 200, borderRadius: 100, borderWidth: 3, borderColor: colors.primary + "15", position: "absolute" }} />
+            <View style={{ width: 280, height: 280, borderRadius: 140, borderWidth: 2, borderColor: colors.primary + "08", position: "absolute" }} />
+            <Animated.View style={{ width: 160, height: 160, borderRadius: 80, backgroundColor: colors.primary + "20", borderWidth: 4, borderColor: colors.primary, alignItems: "center", justifyContent: "center", transform: [{ scale: countdownScale }], opacity: countdownOpacity, shadowColor: colors.primary, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 30, elevation: 20, zIndex: 2 }}>
+              <Text style={{ color: "#FFFFFF", fontSize: countdownValue > 0 ? 72 : 36, fontWeight: "900", letterSpacing: countdownValue > 0 ? 0 : 2, textTransform: "uppercase", textAlign: "center" }} adjustsFontSizeToFit numberOfLines={1}>
+                {countdownValue > 0 ? countdownValue : t("getReady")}
+              </Text>
+            </Animated.View>
+          </View>
+          <Text style={{ color: "#94A3B8", fontSize: 16, fontWeight: "600", marginTop: 48, letterSpacing: 1, textTransform: "uppercase", textAlign: "center" }}>
             {activeRoutine.name}
           </Text>
         </Animated.View>
@@ -417,12 +449,12 @@ export default function ActiveWorkoutScreen({
           <Trash2 size={20} color="#EF4444" />
         </TouchableOpacity>
         <TouchableOpacity onPress={handleFinish}>
-          <LinearGradient colors={["#F97316", "#EA580C"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 14 }}>
+          <LinearGradient colors={["#49b8bf", "#1a45b8"]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ paddingHorizontal: 20, paddingVertical: 10, borderRadius: 14 }}>
             <Text style={{ color: "#FFF", fontWeight: "bold" }}>{t("finish")}</Text>
           </LinearGradient>
         </TouchableOpacity>
       </View>
-      <View style={{ paddingHorizontal: 20, paddingBottom: 15, backgroundColor: colors.card }}>
+        <View style={{ paddingHorizontal: 20, paddingBottom: 15, backgroundColor: colors.card }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
           <Text style={{ color: "#64748B", fontSize: 16, fontWeight: "600" }}>{t("progress")}</Text>
           <Text style={{ color: colors.primary, fontSize: 16, fontWeight: "bold" }}>{Math.round(progress)}%</Text>
@@ -441,26 +473,26 @@ export default function ActiveWorkoutScreen({
               </TouchableOpacity>
             </View>
             {exercise.sets.map((set: WorkoutSet, setIdx: number) => (
-              <View key={set.id || setIdx} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: colors.background, padding: 12, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: set.status === "completed" ? colors.primary : "#1E293B" }}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ color: colors.textSecondary, fontWeight: "bold", width: 50, fontSize: 16 }}>{t("set")} {setIdx + 1}</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 12, marginLeft: 10 }}>
-                    <TextInput style={{ color: colors.text, fontSize: 20, fontWeight: "700", minWidth: 40, textAlign: "center", paddingVertical: 8 }} keyboardType="numeric" value={set.reps === 0 ? "" : set.reps.toString()} onChangeText={(val) => updateSetDetails(exIdx, setIdx, "reps", val)} placeholder="0" placeholderTextColor="#94A3B8" />
-                    <Text style={{ color: colors.textSecondary, fontSize: 14 }}> {t("reps").toLowerCase()} × </Text>
-                    <TextInput style={{ color: colors.text, fontSize: 20, fontWeight: "700", minWidth: 50, textAlign: "center", paddingVertical: 8 }} keyboardType="numeric" value={set.weight === 0 ? "" : set.weight.toString()} onChangeText={(val) => updateSetDetails(exIdx, setIdx, "weight", val)} placeholder="0" placeholderTextColor="#94A3B8" />
-                    <Text style={{ color: colors.textSecondary, fontSize: 14 }}> kg</Text>
+              <View key={set.id || setIdx} style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: colors.background, padding: 8, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: set.status === "completed" ? colors.primary : "#1E293B" }}>
+                <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                  <Text style={{ color: colors.textSecondary, fontWeight: "bold", width: 40, fontSize: 14 }} numberOfLines={1}>{t("set")} {setIdx + 1}</Text>
+                  <View style={{ flexDirection: "row", alignItems: "center", backgroundColor: colors.card, borderRadius: 12, paddingHorizontal: 6, marginLeft: 4, flex: 1, maxWidth: 160 }}>
+                    <TextInput style={{ color: colors.text, fontSize: 16, fontWeight: "700", minWidth: 25, textAlign: "center", paddingVertical: 6, flex: 1 }} keyboardType="numeric" value={set.reps === 0 ? "" : set.reps.toString()} onChangeText={(val) => updateSetDetails(exIdx, setIdx, "reps", val)} placeholder="0" placeholderTextColor="#94A3B8" />
+                    <Text style={{ color: colors.textSecondary, fontSize: 12 }}> × </Text>
+                    <TextInput style={{ color: colors.text, fontSize: 16, fontWeight: "700", minWidth: 30, textAlign: "center", paddingVertical: 6, flex: 1 }} keyboardType="numeric" value={set.weight === 0 ? "" : set.weight.toString()} onChangeText={(val) => updateSetDetails(exIdx, setIdx, "weight", val)} placeholder="0" placeholderTextColor="#94A3B8" />
+                    <Text style={{ color: colors.textSecondary, fontSize: 12 }}>kg</Text>
                   </View>
                 </View>
-                <View style={{ flexDirection: "row", gap: 8 }}>
+                <View style={{ flexDirection: "row", gap: 4, marginLeft: 6 }}>
                   <TouchableOpacity onPress={() => updateSetStatus(exIdx, setIdx, "completed")} style={{ overflow: "hidden", borderRadius: 20 }}>
-                    <LinearGradient colors={set.status === "completed" ? ["#49b8bf", "#1a45b8"] : ["transparent", "transparent"]} style={{ width: 40, height: 40, borderRadius: 20, borderWidth: set.status === "completed" ? 0 : 2, borderColor: set.status === "completed" ? "transparent" : colors.card, alignItems: "center", justifyContent: "center" }}>
-                      <Check color={set.status === "completed" ? "#FFF" : colors.textSecondary} size={20} strokeWidth={3} />
+                    <LinearGradient colors={set.status === "completed" ? ["#49b8bf", "#1a45b8"] : ["transparent", "transparent"]} style={{ width: 34, height: 34, borderRadius: 17, borderWidth: set.status === "completed" ? 0 : 2, borderColor: set.status === "completed" ? "transparent" : colors.card, alignItems: "center", justifyContent: "center" }}>
+                      <Check color={set.status === "completed" ? "#FFF" : colors.textSecondary} size={18} strokeWidth={3} />
                     </LinearGradient>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => updateSetStatus(exIdx, setIdx, "partial")} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: set.status === "partial" ? "#F59E0B" : "transparent", borderWidth: 1, borderColor: set.status === "partial" ? "#F59E0B" : "#E2E8F0", alignItems: "center", justifyContent: "center" }}>
+                  <TouchableOpacity onPress={() => updateSetStatus(exIdx, setIdx, "partial")} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: set.status === "partial" ? "#F59E0B" : "transparent", borderWidth: 1, borderColor: set.status === "partial" ? "#F59E0B" : "#E2E8F0", alignItems: "center", justifyContent: "center" }}>
                     <View style={{ transform: [{ rotate: "45deg" }] }}><Minus color={set.status === "partial" ? "#FFF" : "#94A3B8"} size={18} /></View>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => updateSetStatus(exIdx, setIdx, "failed")} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: set.status === "failed" ? "#EF4444" : "transparent", borderWidth: 1, borderColor: set.status === "failed" ? "#EF4444" : "#E2E8F0", alignItems: "center", justifyContent: "center" }}>
+                  <TouchableOpacity onPress={() => updateSetStatus(exIdx, setIdx, "failed")} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: set.status === "failed" ? "#EF4444" : "transparent", borderWidth: 1, borderColor: set.status === "failed" ? "#EF4444" : "#E2E8F0", alignItems: "center", justifyContent: "center" }}>
                     <X color={set.status === "failed" ? "#FFF" : "#94A3B8"} size={18} />
                   </TouchableOpacity>
                 </View>
@@ -480,8 +512,8 @@ export default function ActiveWorkoutScreen({
               <Timer size={20} color="#3B82F6" />
             </View>
             <View>
-              <Text style={{ fontSize: 7, fontWeight: "bold", color: "#94A3B8", textTransform: "uppercase", letterSpacing: 0.5 }}>{t("sessionTime").toUpperCase()}</Text>
-              <Text style={{ fontSize: 20, fontWeight: "bold", color: "#0F172A", fontVariant: ["tabular-nums"] }}>{formatTime(elapsed)}</Text>
+              <Text style={{ fontSize: 9, fontWeight: "bold", color: colors.textSecondary, textTransform: "uppercase", letterSpacing: 0.5 }}>{t("sessionTime").toUpperCase()}</Text>
+              <Text style={{ fontSize: 20, fontWeight: "bold", color: colors.text, fontVariant: ["tabular-nums"] }}>{formatTime(elapsed)}</Text>
             </View>
           </View>
           <TouchableOpacity onPress={() => setIsRunning(!isRunning)}>

@@ -99,10 +99,10 @@ const ToastItem = ({ toast }: { toast: ToastMessage }) => {
 
   const bgColor =
     toast.type === "success"
-      ? "#059669"
+      ? "#065F46"
       : toast.type === "error"
-        ? "#DC2626"
-        : "#2563EB";
+        ? "#991B1B"
+        : "#1a45b8";
 
   const icon =
     toast.type === "success" ? "✓" : toast.type === "error" ? "✕" : "ℹ";

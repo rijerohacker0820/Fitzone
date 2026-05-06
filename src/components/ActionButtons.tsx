@@ -42,7 +42,11 @@ export default function ActionButtons({ onLogPress, onSchedulePress }: Props) {
         >
           <Calendar size={20} color={colors.text} />
         </View>
-        <Text style={{ color: colors.text, fontWeight: "600", fontSize: 14 }}>
+        <Text
+          style={{ color: colors.text, fontWeight: "bold", fontSize: 15 }}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
           Ver Horario
         </Text>
       </AnimatedButton>
@@ -82,13 +86,13 @@ export default function ActionButtons({ onLogPress, onSchedulePress }: Props) {
             style={{
               color: "#FFFFFF",
               fontWeight: "bold",
-              fontSize: 19,
+              fontSize: 15,
               textAlign: "center",
             }}
             numberOfLines={1}
             adjustsFontSizeToFit
           >
-            Registrar Entreno
+            Nuevo Entrenamiento
           </Text>
         </LinearGradient>
       </AnimatedButton>

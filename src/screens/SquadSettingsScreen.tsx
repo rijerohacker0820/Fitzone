@@ -54,7 +54,7 @@ import { useLanguage } from "../context/LanguageContext";
 import { searchUsers } from "../services/userService";
 import { getFriends } from "../services/socialService";
 import { UserProfile, FriendDto } from "../types";
-import { addMemberToGroup, getGroupMembers, leaveGroup, removeMemberFromGroup, updateGroup } from "../services/groupService";
+import { addMemberToGroup, getGroupMembers, leaveGroup, removeMemberFromGroup, updateGroup, getGroupRequests, approveGroupRequest } from "../services/groupService";
 import { getImageUrl, getAvatarUrl } from "../api/apiClient";
 import { uploadImage } from "../services/uploadService";
 
@@ -85,6 +85,7 @@ export default function SquadSettingsScreen() {
   const { showToast } = useToast();
 
   const [squadMembers, setSquadMembers] = useState<SquadMember[]>([]);
+  const [joinRequests, setJoinRequests] = useState<any[]>([]);
 
   // Load friends when modal opens
   useEffect(() => {
@@ -160,12 +161,12 @@ export default function SquadSettingsScreen() {
 
         const mappedMembers: SquadMember[] = fetchedMembers.map(
           (m: any, i: number) => ({
-            id: m.id,
-            name: m.name,
+            id: m.userId || m.id,
+            name: m.fullName || m.name,
             avatarColor: colors[i % colors.length],
             role: m.role,
-            isCurrentUser: m.id === user?.id,
-            profileImage: m.profileImage || undefined,
+            isCurrentUser: (m.userId || m.id) === user?.id,
+            profileImage: m.avatarUrl || m.profileImage || undefined,
             streak: m.streak,
           }),
         );
@@ -180,6 +181,12 @@ export default function SquadSettingsScreen() {
         });
 
         setSquadMembers(mappedMembers);
+        
+        // Fetch join requests if user is Admin
+        if (mappedMembers.find((m) => m.isCurrentUser)?.role === "Admin") {
+          const reqs = await getGroupRequests(squadId);
+          setJoinRequests(reqs);
+        }
       } catch (error) {
         console.error("Failed to load squadMembers", error);
       }
@@ -187,6 +194,20 @@ export default function SquadSettingsScreen() {
 
     fetchMembers();
   }, [squadId, addMemberModalVisible]); // Refresh squadMembers when modal closes!
+
+  const handleApproveRequest = async (userId: string) => {
+    try {
+      await approveGroupRequest(squadId, userId);
+      setJoinRequests((prev) => prev.filter((r) => r.userId !== userId));
+      showToast("Solicitud aprobada", "success");
+      // Could re-fetch members here
+      const fetchedMembers = await getGroupMembers(squadId);
+      // Map and sort members...
+      // For simplicity, relying on the user pulling to refresh or reloading the screen to see them in participants list.
+    } catch (e: any) {
+      showToast("Error al aprobar solicitud", "error");
+    }
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -444,8 +465,9 @@ export default function SquadSettingsScreen() {
               <TextInput
                 value={name}
                 onChangeText={setName}
-                style={styles.input}
+                style={[styles.input, { color: colors.text }]}
                 placeholder={t("squadName")}
+                placeholderTextColor={colors.textSecondary}
               />
             </View>
             <View style={styles.separator} />
@@ -476,6 +498,70 @@ export default function SquadSettingsScreen() {
             </View>
           </View>
         </View>
+
+        {/* Requests (Only for Admin) */}
+        {joinRequests.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              SOLICITUDES PENDIENTES ({joinRequests.length})
+            </Text>
+            <View style={styles.card}>
+              {joinRequests.map((req, index) => (
+                <View key={req.userId || req.id}>
+                  <View style={styles.memberRow}>
+                    <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <View
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: 20,
+                          backgroundColor: "#3B82F6",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          marginRight: 12,
+                          overflow: "hidden",
+                        }}
+                      >
+                        {req.avatarUrl ? (
+                          <Image
+                            source={{ uri: getAvatarUrl(req.avatarUrl) }}
+                            style={{ width: "100%", height: "100%" }}
+                          />
+                        ) : (
+                          <Text style={{ fontSize: 16 }}>😊</Text>
+                        )}
+                      </View>
+                      <View>
+                        <Text style={[styles.memberName, { color: colors.text }]}>
+                          {req.fullName || req.name}
+                        </Text>
+                        <Text style={[styles.memberRole, { color: colors.textSecondary }]}>
+                          Desea unirse
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleApproveRequest(req.userId || req.id)}
+                      style={{
+                        backgroundColor: colors.primary,
+                        paddingHorizontal: 12,
+                        paddingVertical: 6,
+                        borderRadius: 12,
+                      }}
+                    >
+                      <Text style={{ color: "#FFF", fontWeight: "bold", fontSize: 12 }}>
+                        Aprobar
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {index < joinRequests.length - 1 && (
+                    <View style={styles.separator} />
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Participants */}
         <View style={styles.section}>
@@ -543,10 +629,10 @@ export default function SquadSettingsScreen() {
                       )}
                     </View>
                     <View>
-                      <Text style={styles.memberName}>
+                      <Text style={[styles.memberName, { color: colors.text }]}>
                         {member.name} {member.isCurrentUser && t("you")}
                       </Text>
-                      <Text style={styles.memberRole}>{member.role}</Text>
+                      <Text style={[styles.memberRole, { color: colors.textSecondary }]}>{member.role}</Text>
                     </View>
                   </View>
                   {member.isCurrentUser ? (
@@ -556,6 +642,7 @@ export default function SquadSettingsScreen() {
                   ) : squadMembers.find((m) => m.isCurrentUser)?.role === "Admin" ? (
                     <TouchableOpacity
                       onPress={() => handleRemoveMember(member.id)}
+                      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
                       <Trash2 size={18} color="#EF4444" />
                     </TouchableOpacity>
@@ -705,7 +792,7 @@ export default function SquadSettingsScreen() {
                           style={{
                             fontSize: 16,
                             fontWeight: "bold",
-                            color: "#0F172A",
+                            color: colors.text,
                             marginBottom: 2,
                           }}
                         >
@@ -766,7 +853,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: "bold",
-    color: "#64748B",
+    color: "#94A3B8",
     marginBottom: 8,
     marginLeft: 4,
     letterSpacing: 0.5,
@@ -775,12 +862,15 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 4,
     borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.1)",
+    backgroundColor: "rgba(255,255,255,0.05)",
   },
   inputContainer: { padding: 16 },
   label: {
     fontSize: 12,
     fontWeight: "bold",
     marginBottom: 4,
+    color: "#94A3B8",
   },
   input: { fontSize: 16, fontWeight: "600" },
   row: {
@@ -789,7 +879,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
-  rowText: { fontSize: 16, fontWeight: "500" },
+  rowText: { fontSize: 16, fontWeight: "500", color: "#FFFFFF" },
   memberRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -798,5 +888,5 @@ const styles = StyleSheet.create({
   },
   memberName: { fontSize: 16, fontWeight: "bold" },
   memberRole: { fontSize: 12, color: "#64748B" },
-  separator: { height: 1, marginLeft: 16 },
+  separator: { height: 1, marginLeft: 16, backgroundColor: "rgba(255,255,255,0.1)" },
 });

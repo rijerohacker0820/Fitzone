@@ -12,4 +12,6 @@ export type RootStackParamList = {
   SignUp: undefined;
   CreatePost: undefined;
   Friends: undefined;
+  ForgotPassword: undefined;
+  Notifications: undefined;
 };

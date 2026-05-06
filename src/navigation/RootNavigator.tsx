@@ -11,9 +11,12 @@ import {
   SettingsScreen,
   LoginScreen,
   SignUpScreen,
+  FriendsScreen,
   CreatePostScreen,
   SplashScreen,
+  NotificationsScreen,
 } from "../screens";
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import { useLanguage } from "../context/LanguageContext";
 import { useUser } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
@@ -53,6 +56,7 @@ export default function RootNavigator() {
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} options={{ presentation: 'modal' }} />
         </>
       ) : (
         <>
@@ -106,6 +110,21 @@ export default function RootNavigator() {
             options={{
               presentation: "modal",
               animation: "slide_from_bottom",
+            }}
+          />
+          <Stack.Screen
+            name="Notifications"
+            component={NotificationsScreen}
+            options={{
+              headerShown: false,
+              presentation: "card",
+            }}
+          />
+          <Stack.Screen
+            name="Friends"
+            component={FriendsScreen}
+            options={{
+              presentation: "card",
             }}
           />
         </>

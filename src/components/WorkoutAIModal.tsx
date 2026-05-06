@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTheme } from "../context/ThemeContext";
-import { generateWorkout } from "../services/gemini";
+import { generateWorkoutWithAI } from "../services/aiService";
 import { WorkoutRoutine } from "../types";
 import { X, Sparkles } from "lucide-react-native";
 
@@ -31,7 +31,7 @@ export default function WorkoutAIModal({
 
   const handleGenerate = async () => {
     setLoading(true);
-    const routine = await generateWorkout(goal, equipment, level);
+    const routine = await generateWorkoutWithAI(goal, equipment, level);
     setLoading(false);
     if (routine) {
       onRoutineGenerated(routine);

@@ -13,6 +13,7 @@ import {
 import {
   createGroup,
   joinGroup,
+  requestJoinGroup,
   getGroups,
   Group,
 } from "../services/groupService";
@@ -113,12 +114,17 @@ export default function SocialScreen() {
     }
   };
 
-  const handleJoinGroup = async (squadId: string) => {
-    setIsJoining(squadId);
+  const handleJoinGroup = async (squad: Group) => {
+    setIsJoining(squad.id);
     try {
-      await joinGroup(squadId);
-      await refreshSquads();
-      Alert.alert("Success", "You have joined the squad!");
+      if (squad.isPublic === false) {
+        await requestJoinGroup(squad.id);
+        Alert.alert("Éxito", "Solicitud de unión enviada.");
+      } else {
+        await joinGroup(squad.id);
+        await refreshSquads();
+        Alert.alert("Éxito", "Te has unido al grupo!");
+      }
     } catch (e) {
       Alert.alert(t("error") || "Error", "Failed to join squad.");
     } finally {
@@ -303,7 +309,7 @@ export default function SocialScreen() {
       <View
         style={{ flex: 1, display: activeTab === "Friends" ? "flex" : "none" }}
       >
-        <FriendsScreen hideHeader={true} />
+        <FriendsScreen />
       </View>
 
       <ScrollView
@@ -620,7 +626,7 @@ export default function SocialScreen() {
                         </View>
 
                         <TouchableOpacity
-                          onPress={() => handleJoinGroup(squad.id)}
+                          onPress={() => handleJoinGroup(squad)}
                           disabled={isJoining === squad.id}
                           style={{
                             backgroundColor:
@@ -639,7 +645,7 @@ export default function SocialScreen() {
                           >
                             {isJoining === squad.id
                               ? "..."
-                              : t("join") || "Join"}
+                              : squad.isPublic === false ? "Solicitar" : (t("join") || "Join")}
                           </Text>
                         </TouchableOpacity>
                       </View>

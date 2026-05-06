@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Image, Alert, Switch } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { View, Text, Modal, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView, Platform, Image, Alert, Switch, PanResponder, Animated as RNAnimated, Dimensions, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
-import Animated, { FadeInUp, Layout } from 'react-native-reanimated';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 import * as ImagePicker from 'expo-image-picker';
 import { useTheme } from '../context/ThemeContext';
 import { shadows } from '../theme/shadows';
@@ -21,6 +21,45 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
     const [notes, setNotes] = useState('');
     const [imageUri, setImageUri] = useState<string | undefined>(undefined);
     const [shareToFeed, setShareToFeed] = useState(true);
+
+    const panY = useRef(new RNAnimated.Value(0)).current;
+
+    const resetPositionAnim = RNAnimated.timing(panY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+    });
+
+    const closeAnim = RNAnimated.timing(panY, {
+        toValue: Dimensions.get('window').height,
+        duration: 300,
+        useNativeDriver: true,
+    });
+
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => true,
+            onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 5,
+            onPanResponderMove: (_, gestureState) => {
+                if (gestureState.dy > 0) {
+                    panY.setValue(gestureState.dy);
+                }
+            },
+            onPanResponderRelease: (_, gestureState) => {
+                if (gestureState.dy > 150 || gestureState.vy > 1.5) {
+                    closeAnim.start(() => onClose());
+                } else {
+                    resetPositionAnim.start();
+                }
+            },
+        })
+    ).current;
+
+    useEffect(() => {
+        if (visible) {
+            panY.setValue(0);
+        }
+    }, [visible]);
 
     const handleSave = () => {
         onSave(sensation, notes, imageUri, shareToFeed);
@@ -78,16 +117,19 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
     );
 
     return (
-        <Modal visible={visible} transparent animationType="fade">
+        <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
             <BlurView intensity={80} tint="dark" style={styles.overlay}>
                 <KeyboardAvoidingView
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                    style={{ width: '100%', alignItems: 'center' }}
+                    style={{ width: '100%', flex: 1, justifyContent: 'flex-end' }}
                 >
-                    <Animated.View
-                        entering={FadeInUp.duration(600).springify()}
-                        style={[styles.content, { backgroundColor: colors.card }]}
+                    <RNAnimated.View
+                        style={[styles.content, { backgroundColor: colors.card, transform: [{ translateY: panY }] }]}
                     >
+                      <View {...panResponder.panHandlers} style={{ width: '100%', alignItems: 'center', paddingVertical: 15, marginTop: -15 }}>
+                          <View style={{ width: 50, height: 5, borderRadius: 3, backgroundColor: colors.textSecondary, opacity: 0.3 }} />
+                      </View>
+                      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
                         <Text style={[styles.title, { color: colors.text }]}>Finalizar entrenamiento</Text>
                         <Text style={[styles.subtitle, { color: colors.textSecondary }]}>¿Cómo te sentiste después de esta sesión?</Text>
 
@@ -149,6 +191,7 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                             </View>
                             <Switch value={shareToFeed} onValueChange={setShareToFeed} trackColor={{ true: colors.primary }} />
                         </View>
+                      </ScrollView>
 
                         <View style={styles.footer}>
                             <TouchableOpacity onPress={onClose} style={styles.skipButton}>
@@ -162,7 +205,7 @@ export default function FinishWorkoutModal({ visible, onClose, onSave }: Props) 
                                 <Text style={[styles.saveButtonText, { color: colors.background }]}>Guardar</Text>
                             </TouchableOpacity>
                         </View>
-                    </Animated.View>
+                    </RNAnimated.View>
                 </KeyboardAvoidingView>
             </BlurView>
         </Modal>
@@ -173,14 +216,16 @@ const styles = StyleSheet.create({
     overlay: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
+        justifyContent: 'flex-end',
         alignItems: 'center',
-        padding: 20
     },
     content: {
         width: '100%',
-        borderRadius: 24,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
         padding: 24,
+        paddingBottom: Platform.OS === 'ios' ? 40 : 24,
+        maxHeight: '90%',
         ...shadows.premium
     },
     title: {

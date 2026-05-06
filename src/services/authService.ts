@@ -55,3 +55,22 @@ export const register = async (
   const response = await apiClient.post("/auth/register", payload);
   return response.data;
 };
+
+// ── Forgot Password ────────────────────────────────────
+// POST /api/auth/forgot-password
+export const forgotPassword = async (email: string): Promise<void> => {
+  await apiClient.post("/auth/forgot-password", { email });
+};
+
+// ── Change Password ────────────────────────────────────
+// POST /api/auth/change-password
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export const changePassword = async (
+  data: ChangePasswordRequest,
+): Promise<void> => {
+  await apiClient.post("/auth/change-password", data);
+};

@@ -43,6 +43,10 @@ export const themes = {
  * Fitzone brand colors — extracted from logo_variaciones_paleta.png
  */
 export const BRAND = {
+  primary: "#1a45b8",
+  secondary: "#49b8bf",
+  accent: "#49b8bf",
+  background: "#050f2a",
   orange: "#F97316",
   orangeDark: "#EA580C",
   orangeLight: "#FB923C",
